@@ -10,7 +10,7 @@ Liscence :
 - You may not redistribute this engine's code;
 - You can download the code and modify it, but only for personnal use;
 - Due to the fact that this engine is free, you may not, and you've no rights to use it to make any comertial game;
-- You may download compiled versions of this engine and publish your free games anywhere on the net;
+- You may download compiled versions of this engine and publish your free games everywhere on the net;
 - You can redistribute this engine, as a compiled version only, in a download package, and use it in any of your games.
 
 
