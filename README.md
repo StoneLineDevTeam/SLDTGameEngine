@@ -25,3 +25,20 @@ Riquierements :
 - OpenGL 1.2 Compatible GPU,
 - OpenGL 1.2 Drivers installed,
 - Windows OR Mac OR Linux System.
+
+
+To start developping with this engine, you need first to download the example zip assets file.
+To make assets, 2 ways :
+- Use SLDT's AssetsManager.
+- Use WinRar Archiver or any other archiver software that reads zip or jar.
+
+Don't forget to add the sldtBG.png in backgrounds/sldtBG.png in you assets file, otherwise you can't launch your game.
+
+
+Example assets file explication :
+- backgrounds/mainBG.png : Background that displays in any screen, you can edit, you can't remove it;
+- backgrounds/sldtBG.png : Powered by background, you can't edit it, you can't remove it;
+- buttons/* : Optionnal, used by buttons pre-made screen's components;
+- components/* : Optionnal, used by the console screen component;
+- fonts/* : All your fonts goes here, "normal.png" is the default loaded font;
+- message/* : Optionnal, used by integrated message box system.
