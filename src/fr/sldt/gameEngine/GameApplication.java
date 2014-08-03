@@ -119,6 +119,7 @@ public abstract class GameApplication implements IGame, Runnable {
      * @param dirName The game directory name (set it to #ROOT_FOLDER# for the app root folder)
      * @param exhandler How the game should handles exception thrown in the main thread
      * @param name The name of the game to display on application's title bar
+     * @param version The game version (use getGameVersion() to get it)
      */
     public GameApplication(String loggerName, Session session, float timerPower, String dirName, ExceptionHandler exhandler, String name, String version){
         log = Logger.getLogger(loggerName);

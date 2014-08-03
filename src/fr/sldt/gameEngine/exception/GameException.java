@@ -2,6 +2,9 @@ package fr.sldt.gameEngine.exception;
 
 import fr.sldt.gameEngine.exception.code.ErrorCode009;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GameException extends RuntimeException {
     private GameError errorCode;
     private Exception exception;
@@ -41,6 +44,17 @@ public class GameException extends RuntimeException {
         System.err.println("---------------------------");
         System.err.println("|-->    Stack Trace    <--|");
         System.err.println("---------------------------");
-        printStackTrace(System.err);
+        System.err.println(exception.getCause());
+        for (String s : getJVMException()){
+            System.err.println(s);
+        }
+    }
+
+    public List<String> getJVMException(){
+        List<String> list = new ArrayList<String>();
+        for (StackTraceElement element : getStackTrace()){
+            list.add("\tat " + element);
+        }
+        return list;
     }
 }

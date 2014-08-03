@@ -9,23 +9,12 @@ import java.util.Map;
 public class Translator {
 
     private String langFileName;
-    //private Profile playerProfile;
     private Map<String, String> langValues;
 
     public static Translator instance;
 
     public Translator(String langName) {
-
-        /**
-        if (profile.getLanguage() == null)
-            profile.setLanguage("english");
-
-        if (!profile.getLanguage().equals("english") && !profile.getLanguage().equals("french"))
-            profile.setLanguage("english");
-        */
-
         langFileName = langName;
-        //playerProfile = profile;
         langValues = new HashMap<String, String>();
         loadLanguage();
 
@@ -33,16 +22,8 @@ public class Translator {
     }
 
     public void updateUserLanguage(String newLanguage) {
-        /**
-        playerProfile.setLanguage(newLanguage);
-        if (!playerProfile.getLanguage().equals("english") && !playerProfile.getLanguage().equals("french")) {
-            playerProfile.setLanguage("english");
-        }
-         */
-
         langFileName = newLanguage;
         loadLanguage();
-        //System.out.println(playerProfile.getLanguage());
     }
 
     public String translate(String key) {
