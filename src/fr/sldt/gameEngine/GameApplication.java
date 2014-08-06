@@ -7,7 +7,6 @@ import fr.sldt.gameEngine.ext.gameSettings.GameSettings;
 import fr.sldt.gameEngine.ext.Session;
 import fr.sldt.gameEngine.exception.GameException;
 import fr.sldt.gameEngine.exception.code.ErrorCode006;
-import fr.sldt.gameEngine.extentions.ExtentionsLoader;
 import fr.sldt.gameEngine.logging.LoggerHandler;
 import fr.sldt.gameEngine.logging.ConsoleHandlerFormator;
 import fr.sldt.gameEngine.logging.OutputStreamToLogger;
@@ -109,9 +108,6 @@ public abstract class GameApplication implements IGame, Runnable {
     //The timer power
     private float timer;
 
-    //The extentions provider
-    private ExtentionsLoader extentionsLoader;
-
     /**
      * @param loggerName The name of the game logger
      * @param session The player session if this game uses multiplayer or if you need user/password/sessionID storage
@@ -139,13 +135,9 @@ public abstract class GameApplication implements IGame, Runnable {
         log.addHandler(new LoggerHandler(this));
         log.info("GameEngine " + EngineConstants.ENGINE_VERSION);
         log.info("RenderEngine " + EngineConstants.RENDERENGINE_VERSION);
-        log.info("ExtentionSystem " + EngineConstants.EXTENTIONSYSTEM_VERSION);
         log.info("LWJGL " + EngineConstants.LWJGL_VERSION);
         System.setOut(new PrintStream(new OutputStreamToLogger(log, Level.INFO), true));
         System.setErr(new PrintStream(new OutputStreamToLogger(log, Level.SEVERE), true));
-
-        //Init extentions
-        extentionsLoader = new ExtentionsLoader();
     }
 
     /**
@@ -173,9 +165,6 @@ public abstract class GameApplication implements IGame, Runnable {
 
     private void init() {
         getGameDir();
-
-        //Load extentions
-        extentionsLoader.loadUpExtentions();
 
         lastFPS = getTime();
         initialized = false;
