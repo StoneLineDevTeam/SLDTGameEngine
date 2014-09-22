@@ -4,6 +4,7 @@ import net.sldt_team.gameEngine.gui.GuiButton;
 import net.sldt_team.gameEngine.renderengine.ColorRenderer;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
+import net.sldt_team.gameEngine.util.StringUtilities;
 import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class ConsoleScreen implements GameComponent {
     private int areaWidth;
     private int areaHeight;
 
-    private int missagesNumber;
+    private int messagesNumber;
 
     private int maxLines = 24;
 
@@ -28,6 +29,8 @@ public class ConsoleScreen implements GameComponent {
     private GuiButton scrollUp;
     private GuiButton scrollDown;
 
+    private int maxCharsPerLine = 0;
+
     public ConsoleScreen(int x, int y, int width, int height, RenderEngine renderEngine) {
         areaX = x;
         areaY = y;
@@ -36,6 +39,7 @@ public class ConsoleScreen implements GameComponent {
         areaContent = new ArrayList<String>();
         renderedAreaContent = new ArrayList<String>();
         maxLines = (height / 25);
+        maxCharsPerLine = width / 9;
 
         /** Gui buttons to scroll up and down */
         int i = renderEngine.loadTexture("components/consoleScreen_scrollUp.png");
@@ -92,7 +96,7 @@ public class ConsoleScreen implements GameComponent {
         }
 
         renderEngine.bindColor(ColorRenderer.GREEN);
-        float number = scrollNumber * (areaHeight - maxLines) / missagesNumber;
+        float number = scrollNumber * (areaHeight - maxLines) / messagesNumber;
         //int graphicalPos = scrollNumber * (areaHeight) / missagesNumber;
         if ((areaY + number) > ((areaY + areaHeight) - 64)){
             number = (areaHeight - 64);
@@ -102,13 +106,24 @@ public class ConsoleScreen implements GameComponent {
 
         scrollUp.render(renderEngine, fontRenderer);
         scrollDown.render(renderEngine, fontRenderer);
+
+        checkWheelScroll();
     }
 
     /**
      * Update the current Component
      */
     public void updateComponent() {
-        if (missagesNumber <= maxLines) {
+        if (messagesNumber <= maxLines) {
+            return;
+        }
+
+        scrollUp.update();
+        scrollDown.update();
+    }
+
+    public void checkWheelScroll(){
+        if (messagesNumber <= maxLines) {
             return;
         }
         int i = Mouse.getDWheel();
@@ -120,13 +135,10 @@ public class ConsoleScreen implements GameComponent {
             //System.out.println("scrollDown();");
             scrollDown();
         }
-
-        scrollUp.update();
-        scrollDown.update();
     }
 
     private void scrollUp() {
-        if (scrollNumber == (missagesNumber - maxLines)) {
+        if (scrollNumber == (messagesNumber - maxLines)) {
             return;
         }
         scrollNumber++;
@@ -152,12 +164,18 @@ public class ConsoleScreen implements GameComponent {
     }
 
     public void addLine(String line) {
-        areaContent.add(line);
-        missagesNumber++;
-        if (missagesNumber <= maxLines) {
+        if (line.length() > maxCharsPerLine){
+            List<String> list = StringUtilities.stringWarp(line, maxCharsPerLine);
+            areaContent.addAll(list);
+            messagesNumber += list.size();
+        } else {
+            areaContent.add(line);
+            messagesNumber++;
+        }
+        if (messagesNumber <= maxLines) {
             renderedAreaContent.add(line);
-        } else if (missagesNumber > maxLines) {
-            scrollNumber = missagesNumber - maxLines;
+        } else if (messagesNumber > maxLines) {
+            scrollNumber = messagesNumber - maxLines;
             updateConsole();
         }
     }

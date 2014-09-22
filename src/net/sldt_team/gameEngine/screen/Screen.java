@@ -8,6 +8,8 @@ import net.sldt_team.gameEngine.ext.Translator;
 import net.sldt_team.gameEngine.renderengine.ColorRenderer;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
+import net.sldt_team.gameEngine.screen.event.MessagesEventProvider;
+import net.sldt_team.gameEngine.screen.event.RendersEventProvider;
 import net.sldt_team.gameEngine.screen.message.Message;
 import net.sldt_team.gameEngine.screen.message.MessageDisplay;
 import net.sldt_team.gameEngine.screen.message.MessageType;
@@ -26,7 +28,7 @@ public abstract class Screen implements IScreen {
     private final ArrayList<Runnable> messageQueue = new ArrayList<Runnable>();
 
     /** Whenever or not the screen buttons are enabled */
-    public boolean isButtonEnabled = true;
+    public boolean areControlsEnabled = true;
 
     /** Whenever or not the cursor should be displayed */
     public boolean showCursor = true;
@@ -71,17 +73,39 @@ public abstract class Screen implements IScreen {
     /**
      * Displays a message at the middle of the screen
      */
-    public MessageDisplay displayMessage(Message message){
-        MessageDisplay display = new MessageDisplay(message, this, theGame.renderEngine);
-        displayedMessage = display;
-        return display;
+    public void displayMessage(Message message){
+        if (this instanceof MessagesEventProvider){
+            MessagesEventProvider provider = (MessagesEventProvider)this;
+            if (!provider.canMessageDialogDisplay(message)) {
+                return;
+            }
+        }
+
+        displayedMessage = new MessageDisplay(message, this, theGame.renderEngine);
+
+        if (this instanceof MessagesEventProvider) {
+            MessagesEventProvider provider = (MessagesEventProvider)this;
+            provider.onMessageDialogDisplayed(message);
+        }
     }
 
     /**
      * Removes the current displayed message
      */
     public void clearDesplayedMessage(){
+        if (this instanceof MessagesEventProvider){
+            MessagesEventProvider provider = (MessagesEventProvider)this;
+            if (!provider.canMessageDialogClear(displayedMessage.theMessage)) {
+                return;
+            }
+        }
+
         displayedMessage = null;
+
+        if (this instanceof MessagesEventProvider) {
+            MessagesEventProvider provider = (MessagesEventProvider)this;
+            provider.onMessageDialogCleared();
+        }
     }
 
     /**
@@ -121,6 +145,7 @@ public abstract class Screen implements IScreen {
             }
         };
         messageQueue.add(r);
+
         initScreen();
     }
 
@@ -145,14 +170,14 @@ public abstract class Screen implements IScreen {
             return;
         }
 
-        if (isButtonEnabled) {
+        if (areControlsEnabled) {
             for (GameComponent g : windowComponents) {
                 g.updateComponent();
             }
         }
 
         for (Runnable r : messageQueue) {
-            r.run();
+             r.run();
         }
         messageQueue.clear();
 
@@ -160,8 +185,13 @@ public abstract class Screen implements IScreen {
     }
 
     public void drawWindow(RenderEngine renderEngine, FontRenderer fontRenderer) {
-        renderEngine.bindTexture(backgroundImage);
-        renderEngine.renderQuad(10, 10, GameApplication.getScreenWidth() - 20, GameApplication.getScreenHeight() - 20);
+        if (this instanceof RendersEventProvider){
+            RendersEventProvider provider = (RendersEventProvider)this;
+            provider.preRenderScreen(renderEngine, fontRenderer);
+        } else {
+            renderEngine.bindTexture(backgroundImage);
+            renderEngine.renderQuad(10, 10, GameApplication.getScreenWidth() - 20, GameApplication.getScreenHeight() - 20);
+        }
 
         renderScreen(renderEngine, fontRenderer);
 
@@ -184,6 +214,11 @@ public abstract class Screen implements IScreen {
 
         if (displayedMessage != null){
             displayedMessage.renderMessage(renderEngine, fontRenderer);
+        }
+
+        if (this instanceof RendersEventProvider){
+            RendersEventProvider provider = (RendersEventProvider)this;
+            provider.postRenderScreen(renderEngine, fontRenderer);
         }
     }
 

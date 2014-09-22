@@ -302,7 +302,7 @@ public abstract class GameApplication implements IGame, Runnable {
         if (!initialized){
             fontRenderer.setRenderingSize(5);
             fontRenderer.setRenderingColor(ColorRenderer.GREEN);
-            fontRenderer.renderString("SLDT's GameEngine " + EngineConstants.ENGINE_VERSION, getScreenWidth() - fontRenderer.getStringWidth("SLDT's GameEngine " + EngineConstants.ENGINE_VERSION) - 64, getScreenHeight() - 64);
+            fontRenderer.renderString("SLDT's GameEngine " + EngineConstants.ENGINE_VERSION, getScreenWidth() - fontRenderer.getStringWidth("SLDT's GameEngine " + EngineConstants.ENGINE_VERSION), getScreenHeight() - 64);
             int i = renderEngine.loadTexture(background);
             renderEngine.bindTexture(i);
             renderEngine.setRotationLevel(-rotate);
@@ -451,9 +451,9 @@ public abstract class GameApplication implements IGame, Runnable {
         }
         renderEngine = new RenderEngine(exceptionHandler, new AssetManager(getGameDir() + File.separator + "resources" + File.separator + gameName.toLowerCase(), getAssetsFileType()), log);
         fontRenderer = new FontRenderer(renderEngine, fontName);
-        if (currentFrame != null) {
+        /*if (currentFrame != null) {
             currentFrame.refreshScreen();
-        }
+        }*/
     }
 
     /**

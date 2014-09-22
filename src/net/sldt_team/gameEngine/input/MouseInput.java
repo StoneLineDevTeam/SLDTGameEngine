@@ -56,11 +56,9 @@ public class MouseInput {
 
         int i = Mouse.getDWheel();
         if (i < 0) {
-            System.out.println("WHEEL--");
             theHandler.mouseWheelMoved(false, true, i);
         }
         if (i > 0) {
-            System.out.println("WHEEL++");
             theHandler.mouseWheelMoved(true, false, i);
         }
     }

@@ -44,10 +44,13 @@ public class GameException extends RuntimeException {
         System.err.println("---------------------------");
         System.err.println("|-->    Stack Trace    <--|");
         System.err.println("---------------------------");
-        System.err.println(exception.getCause());
+        /**
+        System.err.println(exception.getMessage());
         for (String s : getJVMException()){
             System.err.println(s);
         }
+         */
+        exception.printStackTrace();
     }
 
     public List<String> getJVMException(){

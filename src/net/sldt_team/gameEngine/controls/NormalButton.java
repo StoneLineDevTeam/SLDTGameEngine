@@ -10,7 +10,7 @@ import net.sldt_team.gameEngine.renderengine.RenderEngine;
 
 public class NormalButton implements GameComponent {
 
-    private String buttonName;
+    protected String buttonName;
     private int normal;
     private int over;
 
@@ -18,13 +18,13 @@ public class NormalButton implements GameComponent {
     private int buttonY;
     private int buttonWidth;
     private int buttonHeight;
-    private boolean isMouseOver;
-    private ComponentAction buttonAction;
+    protected boolean isMouseOver;
+    protected ComponentAction buttonAction;
 
     private GameSettings gameSettings;
     private ParticleManager particleManager;
 
-    private MouseInput input;
+    protected MouseInput input;
 
     public NormalButton(String str, int x, int y, int width, int height, RenderEngine renderEngine, ParticleManager manager, GameSettings settings) {
         buttonName = str;

@@ -8,7 +8,7 @@ import net.sldt_team.gameEngine.renderengine.RenderEngine;
 
 public class NextButton implements GameComponent {
 
-    private String buttonName;
+    protected String buttonName;
     private int normal;
     private int over;
 
@@ -16,10 +16,10 @@ public class NextButton implements GameComponent {
     private int buttonY;
     private int buttonWidth;
     private int buttonHeight;
-    private boolean isMouseOver;
-    private ComponentAction buttonAction;
+    protected boolean isMouseOver;
+    protected ComponentAction buttonAction;
 
-    private MouseInput input;
+    protected MouseInput input;
 
     public NextButton(String str, int x, int y, int width, int height, RenderEngine renderEngine) {
         buttonName = str;

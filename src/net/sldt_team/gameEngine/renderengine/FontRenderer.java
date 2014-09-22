@@ -155,14 +155,14 @@ public class FontRenderer {
      * Get string width but with more presigion (used to calculate an effect string width)
      */
     public float calculateWidthForEffectString(String text, int charWidth){
-        return (text.length() * charWidth) / 2F;
+        return ((text.length() * charWidth) / 2F) + (float)charWidth;
     }
 
     /**
      * Returns the width of a given text using current set size
      */
     public int getStringWidth(String par1Str){
-        return (par1Str.length() * CHAR_WIDTH) / 2;
+        return ((par1Str.length() * CHAR_WIDTH) / 2) + CHAR_WIDTH;
     }
 
     //line the string to draw, xpos and ypos the x-y coords of the text, charWidth and charHeight the width-height of the caracters begins to draw.
