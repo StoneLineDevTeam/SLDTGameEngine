@@ -8,7 +8,7 @@ import org.lwjgl.input.Mouse;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatArea implements GameComponent {
+public class ChatArea implements ScreenComponent {
 
     private int areaX;
     private int areaY;

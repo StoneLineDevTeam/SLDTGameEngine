@@ -4,13 +4,14 @@ import net.sldt_team.gameEngine.gui.GuiButton;
 import net.sldt_team.gameEngine.renderengine.ColorRenderer;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
+import net.sldt_team.gameEngine.renderengine.Texture;
 import net.sldt_team.gameEngine.util.StringUtilities;
 import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConsoleScreen implements GameComponent {
+public class ConsoleScreen implements ScreenComponent {
 
     private int areaX;
     private int areaY;
@@ -42,18 +43,18 @@ public class ConsoleScreen implements GameComponent {
         maxCharsPerLine = width / 9;
 
         /** Gui buttons to scroll up and down */
-        int i = renderEngine.loadTexture("components/consoleScreen_scrollUp.png");
-        int j = renderEngine.loadTexture("components/consoleScreen_scrollDown.png");
-        scrollUp = new GuiButton("", i, i, (x + width) + 5, (y + 5), 32, 32);
-        scrollDown = new GuiButton("", j, j, (x + width) + 5, (y + height) - (32 + 5), 32, 32);
-        ComponentAction up = new ComponentAction() {
-            public void actionPerformed() {
+        Texture i = renderEngine.loadTexture("components/consoleScreen_scrollUp.png");
+        Texture j = renderEngine.loadTexture("components/consoleScreen_scrollDown.png");
+        scrollUp = new GuiButton("", 128, 128, i, (x + width) + 5, (y + 5), 32, 32);
+        scrollDown = new GuiButton("", 128, 128, j, (x + width) + 5, (y + height) - (32 + 5), 32, 32);
+        Runnable up = new Runnable() {
+            public void run() {
                 scrollDown();
             }
         };
         scrollUp.setAction(up);
-        ComponentAction down = new ComponentAction() {
-            public void actionPerformed() {
+        Runnable down = new Runnable() {
+            public void run() {
                 scrollUp();
             }
         };

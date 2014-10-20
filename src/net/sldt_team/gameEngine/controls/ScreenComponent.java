@@ -3,7 +3,7 @@ package net.sldt_team.gameEngine.controls;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
 
-public interface GameComponent {
+public interface ScreenComponent {
 
     /**
      * Render Current Component

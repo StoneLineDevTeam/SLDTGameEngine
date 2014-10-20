@@ -5,19 +5,19 @@ import net.sldt_team.gameEngine.input.MouseInput;
 import net.sldt_team.gameEngine.renderengine.ColorRenderer;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
+import net.sldt_team.gameEngine.renderengine.Texture;
 
-public class QuitButton implements GameComponent {
+public class QuitButton implements ScreenComponent {
 
     protected String buttonName;
-    private int normal;
-    private int over;
+    private Texture butTexture;
 
     private int buttonX;
     private int buttonY;
     private int buttonWidth;
     private int buttonHeight;
     protected boolean isMouseOver;
-    protected ComponentAction buttonAction;
+    protected Runnable buttonAction;
 
     protected MouseInput input;
 
@@ -28,8 +28,7 @@ public class QuitButton implements GameComponent {
         isMouseOver = false;
         buttonWidth = width;
         buttonHeight = height;
-        normal = renderEngine.loadTexture("buttons/stop.png");
-        over = renderEngine.loadTexture("buttons/stop_click.png");
+        butTexture = renderEngine.loadTexture("buttons/stop.png");
 
         input = new MouseInput(new ButtonHandler(width, height, this));
     }
@@ -57,7 +56,7 @@ public class QuitButton implements GameComponent {
     /**
      * Set the action when clicking (See ComponentAction.java)
      */
-    public void setButtonAction(ComponentAction action) {
+    public void setButtonAction(Runnable action) {
         buttonAction = action;
     }
 
@@ -70,7 +69,7 @@ public class QuitButton implements GameComponent {
         ButtonHandler handler = (ButtonHandler) input.getHandler();
         isMouseOver = handler.isMouseOver;
         if (handler.clicked) {
-            buttonAction.actionPerformed();
+            buttonAction.run();
             handler.clicked = false;
         }
     }
@@ -79,12 +78,11 @@ public class QuitButton implements GameComponent {
      * Render Current Component
      */
     public void renderComponent(RenderEngine renderEngine, FontRenderer fontRenderer) {
+        renderEngine.bindTexture(butTexture);
         if (isMouseOver) {
-            renderEngine.bindTexture(over);
-            renderEngine.renderQuad(buttonX, buttonY, buttonWidth, buttonHeight);
+            renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 128, 128, 128);
         } else {
-            renderEngine.bindTexture(normal);
-            renderEngine.renderQuad(buttonX, buttonY, buttonWidth, buttonHeight);
+            renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 0, 128, 128);
         }
         fontRenderer.setRenderingSize(5);
         fontRenderer.setRenderingColor(new ColorRenderer(0, 255, 255));

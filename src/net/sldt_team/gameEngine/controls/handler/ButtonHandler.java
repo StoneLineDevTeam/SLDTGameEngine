@@ -1,6 +1,6 @@
 package net.sldt_team.gameEngine.controls.handler;
 
-import net.sldt_team.gameEngine.controls.GameComponent;
+import net.sldt_team.gameEngine.controls.ScreenComponent;
 import net.sldt_team.gameEngine.input.mouse.MouseHandler;
 import net.sldt_team.gameEngine.input.mouse.MouseHelper;
 
@@ -8,12 +8,12 @@ public class ButtonHandler implements MouseHandler {
 
     private int buttonWidth;
     private int buttonHeight;
-    private GameComponent theComponent;
+    private ScreenComponent theComponent;
 
     public boolean isMouseOver;
     public boolean clicked;
 
-    public ButtonHandler(int width, int height, GameComponent component){
+    public ButtonHandler(int width, int height, ScreenComponent component){
         buttonWidth = width;
         buttonHeight = height;
         theComponent = component;

@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.renderengine.ColorRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
+import net.sldt_team.gameEngine.renderengine.Texture;
 import net.sldt_team.gameEngine.util.FileUtilities;
 import org.lwjgl.opengl.GL11;
 
@@ -37,7 +38,7 @@ public class AnimationFile {
 
     public void renderAnimation(RenderEngine renderEngine, float x, float y, float width, float height){
         TextureFrame frame = animation.getCurrentTexture();
-        int i = renderEngine.loadTexture(frame.path);
+        Texture i = renderEngine.loadTexture(frame.path);
         renderEngine.bindTexture(i);
         renderEngine.setScaleLevel(frame.scale);
         GL11.glColor4f(frame.color.getRed(), frame.color.getGreen(), frame.color.getBlue(), frame.color.getAlpha());

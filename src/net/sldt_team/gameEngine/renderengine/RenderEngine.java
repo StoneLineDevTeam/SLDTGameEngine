@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 public class RenderEngine {
 
-    private Map<String, Integer> imageMap;
+    private Map<String, Texture> textureMap;
     private ByteBuffer missingTexture;
     private ColorRenderer currentColor;
     private boolean usingColor;
@@ -33,8 +33,10 @@ public class RenderEngine {
     protected ExceptionHandler exceptionHandler;
     protected Logger logger;
 
+    private Texture currentBindedTexture;
+
     public RenderEngine(ExceptionHandler handler, AssetManager assets, Logger log) {
-        imageMap = new HashMap<String, Integer>();
+        textureMap = new HashMap<String, Texture>();
         try {
             missingTexture = mountTexture(RenderEngine.class.getResourceAsStream("missingTex.png"));
         } catch (IOException e) {
@@ -76,11 +78,11 @@ public class RenderEngine {
     /**
      * Gets texture id from texture name
      */
-    public int loadTexture(String path) {
-        int id = -1;
+    public Texture loadTexture(String path) {
+        int id;
         try {
-            if (imageMap.get(path) != null) {
-                return imageMap.get(path);
+            if (textureMap.get(path) != null) {
+                return textureMap.get(path);
             } else {
                 logger.warning("Unable to get asset : imageMap.get(\"" + path + "\") = null, binding missing texture to prevent RenderEngine fatal rendering exception...");
                 ByteBuffer texture = mountTexture(RenderEngine.class.getResourceAsStream("missingTex.png"));
@@ -93,7 +95,7 @@ public class RenderEngine {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, currentTexWidth, currentTexHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
                 glDisable(GL_TEXTURE_2D);
-                imageMap.put(path, id);
+                textureMap.put(path, new Texture(id, currentTexWidth, currentTexHeight));
             }
         } catch (Exception e) {
             try {
@@ -102,7 +104,7 @@ public class RenderEngine {
                 exceptionHandler.handleException(new GameException(e1));
             }
         }
-        return id;
+        return null;
     }
 
     private void loadTextureFromAsset(String name, File path) {
@@ -146,38 +148,11 @@ public class RenderEngine {
                 exceptionHandler.handleException(new GameException(e1));
             }
         }
-        imageMap.put(name, id);
-    }
-
-    /**
-     * Loads a texture from a file (WARNING : this function may be deleted soon)
-     */
-    @Deprecated
-    public int loadTextureFromFile(File path) {
-        int id = -1;
-        try {
-            ByteBuffer texture = mountTexture(new FileInputStream(path));
-            glEnable(GL_TEXTURE_2D);
-            id = glGenTextures();
-            glBindTexture(GL_TEXTURE_2D, id);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, currentTexWidth, currentTexHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
-            glDisable(GL_TEXTURE_2D);
-        } catch (IOException e) {
-            try {
-                throw new LWJGLException("RENDER_ENGINE_FATAL_ERROR : MOUNT_TEXTURE_FAILURE");
-            } catch (LWJGLException e1) {
-                exceptionHandler.handleException(new GameException(e1));
-            }
-        }
-        return id;
+        textureMap.put(name, new Texture(id, currentTexWidth, currentTexHeight));
     }
 
     protected boolean hasAsset(String path){
-        return imageMap.containsKey(path);
+        return textureMap.containsKey(path);
     }
 
     protected void loadAssets(ArrayList<String> namesToMap, ArrayList<File> filesToLoad){
@@ -195,10 +170,49 @@ public class RenderEngine {
     /**
      * Binds a texture (args : the texture id from loadTexture int)
      */
-    public void bindTexture(int textureID) {
+    public void bindTexture(Texture texture) {
         usingColor = false;
         glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, textureID);
+        glBindTexture(GL_TEXTURE_2D, texture.openGLIndex);
+        currentBindedTexture = texture;
+    }
+
+    public void renderTexturedQuadWithTextureCoords(float x, float y, float width, float height, float u, float v, float u1, float v1){
+        float texX = u / currentBindedTexture.textureWidth;
+        float texY = v / currentBindedTexture.textureHeight;
+
+        float texW = texX + (u1 / currentBindedTexture.textureWidth);
+        float texH = texY + (v1 / currentBindedTexture.textureHeight);
+
+        if (isRotated || isScaled){
+            glPushMatrix();
+            glTranslatef(((x + width) / 2), ((y + height) / 2), 0);
+            if (isRotated)
+                glRotatef(rotation, 0, 0, 1);
+            if (isScaled)
+                glScalef(scale, scale, 1);
+            glTranslatef(-((x + width) / 2), -((y + height) / 2), 0);
+        }
+        glBegin(GL_QUADS);
+        {
+            glTexCoord2f(texX, texY);
+            glVertex2f(x, y);
+
+            glTexCoord2f(texW, texY);
+            glVertex2f(width + x, y);
+
+            glTexCoord2f(texW, texH);
+            glVertex2f(width + x, height + y);
+
+            glTexCoord2f(texX, texH);
+            glVertex2f(x, height + y);
+        }
+        glEnd();
+        if (isRotated || isScaled){
+            glPopMatrix();
+            isRotated = false;
+            isScaled = false;
+        }
     }
 
     /**

@@ -9,7 +9,7 @@ import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
 import org.lwjgl.input.Keyboard;
 
-public class TextField implements GameComponent {
+public class TextField implements ScreenComponent {
 
     private int areaX;
     private int areaY;

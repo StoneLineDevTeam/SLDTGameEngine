@@ -5,15 +5,13 @@ import static org.lwjgl.opengl.GL11.*;
 public class FontRenderer {
 
     private RenderEngine renderEngine;
-    private int fontTexture;
+    private Texture fontTexture;
     public int CHAR_WIDTH = 16;
     private ColorRenderer currentColor;
 
-    private boolean isScaled;
     private boolean isRotated;
     private boolean isSublined;
     private float rotation;
-    private float scale;
 
     private boolean forceUseGL = false;
 
@@ -121,16 +119,6 @@ public class FontRenderer {
     }
 
     /**
-     * Sets the scale level
-     * @deprecated This has been deprecated due to large amount of issues with text not being rendered (use renderEffectString istead)
-     */
-    @Deprecated
-    public void setScaleLevel(float scaleOf){
-        scale = scaleOf;
-        isScaled = true;
-    }
-
-    /**
      * Unbinds the color (This function is defaulting back to black text color)
      */
     public void unbindColor(){
@@ -165,16 +153,13 @@ public class FontRenderer {
         return ((par1Str.length() * CHAR_WIDTH) / 2) + CHAR_WIDTH;
     }
 
-    //line the string to draw, xpos and ypos the x-y coords of the text, charWidth and charHeight the width-height of the caracters begins to draw.
     private void drawString(String line, float xPos, float yPos, float charWidth, float charHeight, float xGap) {
         renderEngine.bindTexture(fontTexture);
-        if (isRotated || isScaled){
+        if (isRotated){
             glPushMatrix();
             glTranslatef(((xPos + getStringWidth(line)) / 2), ((yPos + charHeight) / 2), 0);
             if (isRotated)
                 glRotatef(rotation, 0, 0, 1);
-            if (isScaled)
-                glScalef(scale, scale, 1);
             glTranslatef(-((xPos + getStringWidth(line)) / 2), -((yPos + charHeight) / 2), 0);
         }
         glBegin(GL_QUADS);
@@ -216,10 +201,9 @@ public class FontRenderer {
             glVertex2f( ( ( dec + charWidth ) * i ) + xPos + charWidth, yPos - charHeight);
         }
         glEnd();
-        if (isRotated || isScaled){
+        if (isRotated){
             glPopMatrix();
             isRotated = false;
-            isScaled = false;
         }
         glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     }

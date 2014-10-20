@@ -1,44 +1,42 @@
 package net.sldt_team.gameEngine.controls;
 
+import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.controls.handler.ButtonHandler;
 import net.sldt_team.gameEngine.input.MouseInput;
 import net.sldt_team.gameEngine.renderengine.ColorRenderer;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
+import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.screen.Screen;
 
-public class RoundButton implements GameComponent {
+public class RoundButton implements ScreenComponent {
 
     protected String buttonName;
-    private int normal;
-    private int over;
+    private Texture butTexture;
 
     private int buttonX;
     private int buttonY;
     private int buttonWidth;
     private int buttonHeight;
     protected boolean isMouseOver;
-    protected ComponentAction buttonAction;
+
+    protected Screen parentScreen;
+    private int id;
 
     protected MouseInput input;
 
-    public RoundButton(String str, int x, int y, int width, int height, RenderEngine renderEngine) {
+    public RoundButton(String str, int x, int y, int width, int height, GameApplication theGame) {
         buttonName = str;
         buttonX = x;
         buttonY = y;
         isMouseOver = false;
         buttonWidth = width;
         buttonHeight = height;
-        normal = renderEngine.loadTexture("buttons/round.png");
-        over = renderEngine.loadTexture("buttons/round_click.png");
+        butTexture = theGame.renderEngine.loadTexture("buttons/round.png");
+        parentScreen = theGame.getCurrentFrame();
+        id = parentScreen.getComponentsCount();
 
         input = new MouseInput(new ButtonHandler(width, height, this));
-    }
-
-    /**
-     * Set the action when clicking (See ComponentAction.java)
-     */
-    public void setButtonAction(ComponentAction action) {
-        buttonAction = action;
     }
 
     /**
@@ -51,6 +49,7 @@ public class RoundButton implements GameComponent {
      * Called when this component is added to a screen
      */
     public void onComponentAdd() {
+        id = parentScreen.getComponentsCount() - 1;
     }
 
     public int getX() {
@@ -70,7 +69,7 @@ public class RoundButton implements GameComponent {
         ButtonHandler handler = (ButtonHandler) input.getHandler();
         isMouseOver = handler.isMouseOver;
         if (handler.clicked) {
-            buttonAction.actionPerformed();
+            parentScreen.actionPerformed(id, this);
             handler.clicked = false;
         }
     }
@@ -79,12 +78,11 @@ public class RoundButton implements GameComponent {
      * Render Current Component
      */
     public void renderComponent(RenderEngine renderEngine, FontRenderer fontRenderer) {
+        renderEngine.bindTexture(butTexture);
         if (isMouseOver) {
-            renderEngine.bindTexture(over);
-            renderEngine.renderQuad(buttonX, buttonY, buttonWidth, buttonHeight);
+            renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 128, 128, 128);
         } else {
-            renderEngine.bindTexture(normal);
-            renderEngine.renderQuad(buttonX, buttonY, buttonWidth, buttonHeight);
+            renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 0, 128, 128);
         }
         fontRenderer.setRenderingSize(5);
         fontRenderer.setRenderingColor(new ColorRenderer(0, 255, 255));

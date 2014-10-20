@@ -1,30 +1,30 @@
 package net.sldt_team.gameEngine.screen;
 
 import net.sldt_team.gameEngine.GameApplication;
-import net.sldt_team.gameEngine.controls.ComponentAction;
-import net.sldt_team.gameEngine.controls.GameComponent;
+import net.sldt_team.gameEngine.controls.ScreenComponent;
 import net.sldt_team.gameEngine.controls.QuitButton;
 import net.sldt_team.gameEngine.ext.Translator;
 import net.sldt_team.gameEngine.renderengine.ColorRenderer;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
+import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.screen.event.ComponentsEventProvider;
 import net.sldt_team.gameEngine.screen.event.MessagesEventProvider;
 import net.sldt_team.gameEngine.screen.event.RendersEventProvider;
 import net.sldt_team.gameEngine.screen.message.Message;
-import net.sldt_team.gameEngine.screen.message.MessageDisplay;
 import net.sldt_team.gameEngine.screen.message.MessageType;
 import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Screen implements IScreen {
+public abstract class Screen {
 
     /** An instance of GameApplication */
     protected GameApplication theGame;
 
-    private int backgroundImage;
-    private List<GameComponent> windowComponents;
+    private Texture backgroundImage;
+    private List<ScreenComponent> screenComponents;
     private final ArrayList<Runnable> messageQueue = new ArrayList<Runnable>();
 
     /** Whenever or not the screen buttons are enabled */
@@ -36,30 +36,56 @@ public abstract class Screen implements IScreen {
     private MessageDisplay displayedMessage = null;
 
     public Screen() {
-        windowComponents = new ArrayList<GameComponent>();
+        screenComponents = new ArrayList<ScreenComponent>();
     }
 
     /**
      * Adds a component to the screen
      */
-    public void addComponentToWindow(final GameComponent component) {
+    public void addComponentToScreen(final ScreenComponent component) {
+        if (this instanceof ComponentsEventProvider){
+            ComponentsEventProvider provider = (ComponentsEventProvider)this;
+            if (!provider.canComponentAdd(component)) {
+                return;
+            }
+        }
+
         Runnable r = new Runnable() {
             public void run() {
                 component.onComponentAdd();
-                windowComponents.add(component);
+                screenComponents.add(component);
+                if(Screen.this instanceof ComponentsEventProvider){
+                    ComponentsEventProvider provider = (ComponentsEventProvider)Screen.this;
+                    provider.onComponentAdded(component);
+                }
             }
         };
         messageQueue.add(r);
     }
 
+    public int getComponentsCount(){
+        return screenComponents.size();
+    }
+
     /**
      * Removes a component from the screen
      */
-    public void removeComponentFromWindow(final GameComponent component) {
+    public void removeComponentFromScreen(final ScreenComponent component) {
+        if (this instanceof ComponentsEventProvider){
+            ComponentsEventProvider provider = (ComponentsEventProvider)this;
+            if (!provider.canComponentRemove(component)) {
+                return;
+            }
+        }
+
         Runnable r = new Runnable() {
             public void run() {
                 component.onComponentRemove();
-                windowComponents.remove(component);
+                screenComponents.remove(component);
+                if(Screen.this instanceof ComponentsEventProvider){
+                    ComponentsEventProvider provider = (ComponentsEventProvider)Screen.this;
+                    provider.onComponentRemoved();
+                }
             }
         };
         messageQueue.add(r);
@@ -112,20 +138,19 @@ public abstract class Screen implements IScreen {
      * Adds a quit button
      */
     public void addQuitButton() {
-        final ComponentAction action = new ComponentAction() {
-            public void actionPerformed() {
+        final Runnable action = new Runnable() {
+            public void run() {
                 theGame.closeGame();
             }
         };
         QuitButton quit = new QuitButton(Translator.instance.translate("screen.quit"), GameApplication.getScreenWidth() - 100, GameApplication.getScreenHeight() - 90, 60, 60, theGame.renderEngine);
-        ComponentAction al123 = new ComponentAction() {
-            public void actionPerformed() {
+        Runnable al123 = new Runnable() {
+            public void run() {
                 displayMessage(new Message(MessageType.CONFIRMATION, theGame.getGameName(), "Are you sure you realy want to exit this game ?", action));
             }
         };
         quit.setButtonAction(al123);
-        windowComponents.add(quit);
-        addComponentToWindow(quit);
+        addComponentToScreen(quit);
     }
 
     public void setGame(GameApplication game) {
@@ -138,10 +163,10 @@ public abstract class Screen implements IScreen {
     public void refreshScreen(){
         Runnable r = new Runnable() {
             public void run() {
-                for (GameComponent component : windowComponents) {
+                for (ScreenComponent component : screenComponents) {
                     component.onComponentRemove();
                 }
-                windowComponents.clear();
+                screenComponents.clear();
             }
         };
         messageQueue.add(r);
@@ -152,11 +177,11 @@ public abstract class Screen implements IScreen {
     public void onExit() {
         Runnable r = new Runnable() {
             public void run() {
-                for (GameComponent component : windowComponents) {
+                for (ScreenComponent component : screenComponents) {
                     component.onComponentRemove();
                 }
-                windowComponents.clear();
-                windowComponents = null;
+                screenComponents.clear();
+                screenComponents = null;
             }
         };
         messageQueue.add(r);
@@ -171,7 +196,7 @@ public abstract class Screen implements IScreen {
         }
 
         if (areControlsEnabled) {
-            for (GameComponent g : windowComponents) {
+            for (ScreenComponent g : screenComponents) {
                 g.updateComponent();
             }
         }
@@ -195,7 +220,7 @@ public abstract class Screen implements IScreen {
 
         renderScreen(renderEngine, fontRenderer);
 
-        for (GameComponent g : windowComponents) {
+        for (ScreenComponent g : screenComponents) {
             if (g != null)
                 g.renderComponent(renderEngine, fontRenderer);
         }
@@ -225,20 +250,26 @@ public abstract class Screen implements IScreen {
     /**
      * Called when a tick is dispatched to the screen
      */
-    public abstract void updateScreen();
+    protected abstract void updateScreen();
 
     /**
      * Called when screen is rendered
      */
-    public abstract void renderScreen(RenderEngine renderEngine, FontRenderer fontRenderer);
+    protected abstract void renderScreen(RenderEngine renderEngine, FontRenderer fontRenderer);
 
     /**
      * Called when screen is initialized (used to add all default components)
      */
-    public abstract void initScreen();
+    protected abstract void initScreen();
 
     /**
      * Called when user exits this screen
      */
-    public abstract void onExitingScreen();
+    protected abstract void onExitingScreen();
+
+    /**
+     * Used by components as an event system (example : when button get clicked)
+     * WARNING : Engine does not automaticaly call this method, a game component must import this method
+     */
+    public abstract void actionPerformed(int compID, ScreenComponent component);
 }

@@ -1,15 +1,14 @@
 package net.sldt_team.gameEngine.gui;
 
 import net.sldt_team.gameEngine.GameApplication;
-import net.sldt_team.gameEngine.controls.ComponentAction;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
+import net.sldt_team.gameEngine.renderengine.Texture;
 import org.lwjgl.input.Mouse;
 
 public class GuiButton {
 
-    private int button;
-    private int buttonClick;
+    private Texture button;
 
     private int buttonX;
     private int buttonY;
@@ -18,29 +17,33 @@ public class GuiButton {
     private boolean isMouseOver;
     private boolean clicked = false;
     public String text;
-    private ComponentAction action;
+    private Runnable action;
 
-    public GuiButton(String str, int b, int bc, int x, int y, int width, int height) {
+    private int px;
+    private int py;
+
+    public GuiButton(String str, int pixelsX, int pixelsY, Texture b, int x, int y, int width, int height) {
         button = b;
-        buttonClick = bc;
         buttonX = x;
         buttonY = y;
         buttonWidth = width;
         buttonHeight = height;
         text = str;
+
+        px = pixelsX;
+        py = pixelsY;
     }
 
-    public void setAction(ComponentAction a) {
+    public void setAction(Runnable a) {
         action = a;
     }
 
     public void render(RenderEngine renderEngine, FontRenderer fontRenderer) {
+        renderEngine.bindTexture(button);
         if (isMouseOver) {
-            renderEngine.bindTexture(buttonClick);
-            renderEngine.renderQuad(buttonX, buttonY, buttonWidth, buttonHeight);
+            renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, py, px, py);
         } else {
-            renderEngine.bindTexture(button);
-            renderEngine.renderQuad(buttonX, buttonY, buttonWidth, buttonHeight);
+            renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 0, px, py);
         }
         fontRenderer.unbindColor();
         fontRenderer.setRenderingSize(5);
@@ -80,7 +83,7 @@ public class GuiButton {
         }
 
         if (clicked) {
-            action.actionPerformed();
+            action.run();
             clicked = false;
         }
     }

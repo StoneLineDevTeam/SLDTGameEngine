@@ -2,7 +2,6 @@ package net.sldt_team.gameEngine.screen.message;
 
 import com.sun.istack.internal.NotNull;
 import net.sldt_team.gameEngine.GameApplication;
-import net.sldt_team.gameEngine.controls.ComponentAction;
 import net.sldt_team.gameEngine.gui.GuiButton;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
 import net.sldt_team.gameEngine.screen.Screen;
@@ -19,10 +18,10 @@ public class Message {
     private List<GuiButton> buttons;
     private boolean isConfirmation;
 
-    private ComponentAction yesAction;
+    private Runnable yesAction;
 
 
-    public Message(@NotNull MessageType type, String title, @NotNull String content, ComponentAction yes){
+    public Message(@NotNull MessageType type, String title, @NotNull String content, Runnable yes){
         String path = null;
         yesAction = yes;
         buttons = new ArrayList<GuiButton>();
@@ -61,18 +60,18 @@ public class Message {
 
     public void init(RenderEngine renderEngine, final Screen screen){
         if (isConfirmation){
-            GuiButton yes = new GuiButton("Yes", renderEngine.loadTexture("message/button.png"), renderEngine.loadTexture("message/button_click.png"), (int)MathUtilities.getCenteredObjectX(512) + 5, (int)MathUtilities.getCenteredObjectY(256) + 200, 150, 50);
-            GuiButton no = new GuiButton("No", renderEngine.loadTexture("message/button.png"), renderEngine.loadTexture("message/button_click.png"), (int)MathUtilities.getCenteredObjectX(512) + 160, (int)MathUtilities.getCenteredObjectY(256) + 200, 150, 50);
-            no.setAction(new ComponentAction() {
-                public void actionPerformed() {
+            GuiButton yes = new GuiButton("Yes", 128, 32, renderEngine.loadTexture("message/button.png"), (int)MathUtilities.getCenteredObjectX(512) + 5, (int)MathUtilities.getCenteredObjectY(256) + 200, 150, 50);
+            GuiButton no = new GuiButton("No", 128, 32, renderEngine.loadTexture("message/button.png"), (int)MathUtilities.getCenteredObjectX(512) + 160, (int)MathUtilities.getCenteredObjectY(256) + 200, 150, 50);
+            no.setAction(new Runnable() {
+                public void run() {
                     screen.clearDesplayedMessage();
                 }
             });
             if (yesAction != null){
                 yes.setAction(yesAction);
             } else {
-                yes.setAction(new ComponentAction() {
-                    public void actionPerformed() {
+                yes.setAction(new Runnable() {
+                    public void run() {
                         screen.clearDesplayedMessage();
                     }
                 });
@@ -81,12 +80,12 @@ public class Message {
             buttons.add(no);
             return;
         }
-        GuiButton ok = new GuiButton("Ok", renderEngine.loadTexture("message/button.png"), renderEngine.loadTexture("message/button_click.png"), (int)MathUtilities.getCenteredObjectX(512) + 5, (int)MathUtilities.getCenteredObjectY(256) + 200, 150, 50);
+        GuiButton ok = new GuiButton("Ok", 128, 32, renderEngine.loadTexture("message/button.png"), (int)MathUtilities.getCenteredObjectX(512) + 5, (int)MathUtilities.getCenteredObjectY(256) + 200, 150, 50);
         if (yesAction != null){
             ok.setAction(yesAction);
         } else {
-            ok.setAction(new ComponentAction() {
-                public void actionPerformed() {
+            ok.setAction(new Runnable() {
+                public void run() {
                     screen.clearDesplayedMessage();
                 }
             });

@@ -1,5 +1,6 @@
 package net.sldt_team.gameEngine.controls;
 
+import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.controls.handler.ButtonHandler;
 import net.sldt_team.gameEngine.ext.gameSettings.GameSettings;
 import net.sldt_team.gameEngine.input.MouseInput;
@@ -7,37 +8,42 @@ import net.sldt_team.gameEngine.particle.ParticleManager;
 import net.sldt_team.gameEngine.renderengine.ColorRenderer;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
+import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.screen.Screen;
 
-public class NormalButton implements GameComponent {
+public class NormalButton implements ScreenComponent {
 
     protected String buttonName;
-    private int normal;
-    private int over;
+    private Texture butTexture;
 
     private int buttonX;
     private int buttonY;
     private int buttonWidth;
     private int buttonHeight;
     protected boolean isMouseOver;
-    protected ComponentAction buttonAction;
+
+    protected Screen parentScreen;
+    private int id;
 
     private GameSettings gameSettings;
     private ParticleManager particleManager;
 
     protected MouseInput input;
 
-    public NormalButton(String str, int x, int y, int width, int height, RenderEngine renderEngine, ParticleManager manager, GameSettings settings) {
+    public NormalButton(String str, int x, int y, int width, int height, GameApplication theGame) {
         buttonName = str;
         buttonX = x;
         buttonY = y;
         isMouseOver = false;
         buttonWidth = width;
         buttonHeight = height;
-        normal = renderEngine.loadTexture("buttons/normal.png");
-        over = renderEngine.loadTexture("buttons/normal_click.png");
+        butTexture = theGame.renderEngine.loadTexture("buttons/normal.png");
 
-        gameSettings = settings;
-        particleManager = manager;
+        parentScreen = theGame.getCurrentFrame();
+        id = parentScreen.getComponentsCount();
+
+        gameSettings = theGame.gameSettings;
+        particleManager = theGame.particleManager;
 
         input = new MouseInput(new ButtonHandler(width, height, this));
     }
@@ -52,6 +58,7 @@ public class NormalButton implements GameComponent {
      * Called when this component is added to a screen
      */
     public void onComponentAdd() {
+        id = parentScreen.getComponentsCount() - 1;
     }
 
     public int getX() {
@@ -63,13 +70,6 @@ public class NormalButton implements GameComponent {
     }
 
     /**
-     * Set the action when clicking (See ComponentAction.java)
-     */
-    public void setButtonAction(ComponentAction action) {
-        buttonAction = action;
-    }
-
-    /**
      * Update the current Component
      */
     public void updateComponent() {
@@ -78,7 +78,7 @@ public class NormalButton implements GameComponent {
         ButtonHandler handler = (ButtonHandler) input.getHandler();
         isMouseOver = handler.isMouseOver;
         if (handler.clicked) {
-            buttonAction.actionPerformed();
+            parentScreen.actionPerformed(id, this);
             handler.clicked = false;
         }
      }
@@ -87,16 +87,15 @@ public class NormalButton implements GameComponent {
      * Render Current Component
      */
     public void renderComponent(RenderEngine renderEngine, FontRenderer fontRenderer) {
+        renderEngine.bindTexture(butTexture);
         if (isMouseOver) {
-            renderEngine.bindTexture(over);
-            renderEngine.renderQuad(buttonX, buttonY, buttonWidth, buttonHeight);
+            renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 128, 128, 128);
             if (gameSettings.isParticlesActivated) {
                 particleManager.spawnParticle("button", buttonX - 16, (buttonY + buttonHeight / 2) - 16, buttonX - 16, (buttonY + buttonHeight / 2) - 16, 1, null);
                 particleManager.spawnParticle("button", (buttonX + buttonWidth) + 16, (buttonY + buttonHeight / 2) - 16, (buttonX + buttonWidth) + 16, (buttonY + buttonHeight / 2) - 16, 1, null);
             }
         } else {
-            renderEngine.bindTexture(normal);
-            renderEngine.renderQuad(buttonX, buttonY, buttonWidth, buttonHeight);
+            renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 0, 128, 128);
         }
         if (!isMouseOver) {
             fontRenderer.setRenderingSize(6);
