@@ -42,3 +42,7 @@ Example assets file explication :
 - components/* : Optionnal, used by the console screen component;
 - fonts/* : All your fonts goes here, "normal.png" is the default loaded font;
 - message/* : Optionnal, used by integrated message box system.
+ 
+
+
+WARNING : This engine's version will be disbanned when V6.0 will be out...
