@@ -12,44 +12,49 @@ public class MouseInput {
     private boolean clickedWheel;
     private boolean clickedRight;
 
-    public MouseInput(MouseHandler handler){
+    /**
+     * Creates a mouse input manager
+     *
+     * @param handler The handler to associate
+     */
+    public MouseInput(MouseHandler handler) {
         theHandler = handler;
     }
 
     /**
      * You need to call this function yourself otherwise, the input handle will not work
      */
-    public void updateInput(){
+    public void updateInput() {
         int x = Mouse.getX();
         int y = GameApplication.getScreenHeight() - Mouse.getY();
 
         theHandler.mouseMoved(x, y);
 
-        if (Mouse.isButtonDown(0)){
+        if (Mouse.isButtonDown(0)) {
             theHandler.mousePressed(x, y, MouseHelper.LEFT_CLICK);
             clickedLeft = true;
             return;
         }
-        if (Mouse.isButtonDown(1)){
+        if (Mouse.isButtonDown(1)) {
             theHandler.mousePressed(x, y, MouseHelper.RIGHT_CLICK);
             clickedRight = true;
             return;
         }
-        if (Mouse.isButtonDown(2)){
+        if (Mouse.isButtonDown(2)) {
             theHandler.mousePressed(x, y, MouseHelper.WHEEL_CLICK);
             clickedWheel = true;
             return;
         }
 
-        if (clickedLeft){
+        if (clickedLeft) {
             theHandler.mouseClicked(x, y, MouseHelper.LEFT_CLICK);
             clickedLeft = false;
         }
-        if (clickedRight){
+        if (clickedRight) {
             theHandler.mouseClicked(x, y, MouseHelper.RIGHT_CLICK);
             clickedRight = false;
         }
-        if (clickedWheel){
+        if (clickedWheel) {
             theHandler.mouseClicked(x, y, MouseHelper.WHEEL_CLICK);
             clickedWheel = false;
         }
@@ -63,7 +68,10 @@ public class MouseInput {
         }
     }
 
-    public MouseHandler getHandler(){
+    /**
+     * Returns associated Handler
+     */
+    public MouseHandler getHandler() {
         return theHandler;
     }
 }

@@ -7,7 +7,12 @@ public class KeyboardInput {
 
     private KeyboardHandler theHandler;
 
-    public KeyboardInput(KeyboardHandler handler){
+    /**
+     * Creates a keyboard input manager
+     *
+     * @param handler The handler to associate
+     */
+    public KeyboardInput(KeyboardHandler handler) {
         theHandler = handler;
     }
 
@@ -16,7 +21,7 @@ public class KeyboardInput {
     /**
      * You need to call this function yourself otherwise, the input handle will not work
      */
-    public void updateInput(){
+    public void updateInput() {
         while (Keyboard.next()) {
             if (Keyboard.getEventKey() != Keyboard.CHAR_NONE) {
                 if (Keyboard.getEventKeyState()) {
@@ -31,7 +36,10 @@ public class KeyboardInput {
         }
     }
 
-    public KeyboardHandler getHandler(){
+    /**
+     * Returns associated Handler
+     */
+    public KeyboardHandler getHandler() {
         return theHandler;
     }
 }

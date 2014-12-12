@@ -13,43 +13,70 @@ public class GameSettings {
     private File settingsFile;
 
     /**
-     * The base video settings
+     * Are particles activated
      */
     public boolean isParticlesActivated;
-    public boolean useVsync;
-    public boolean useGameCursor;
-    public boolean showFPS;
 
     /**
-     * The Game additional settings
+     * Using VSync (Warning : You must check this boolean yourself ; use GLUtilities.switchVSync to switch VSync)
      */
+    public boolean useVsync;
+
+    /**
+     * Using game cursor (Warning : You must check this boolean yourself)
+     */
+    public boolean useGameCursor;
+
+    /**
+     * Should the game engine show FPS in the upper left corner of the screen ?
+     */
+    public boolean showFPS;
+
     private Map<String, Object> settingsMap;
 
+    /**
+     * @exclude
+     */
     public GameSettings() {
         settingsMap = new HashMap<String, Object>();
-        if (!FileUtilities.getSavesDirectory().exists()){
+        if (!FileUtilities.getSavesDirectory().exists()) {
             FileUtilities.getSavesDirectory().mkdirs();
         }
         settingsFile = new File(FileUtilities.getSavesDirectory() + File.separator + "settings");
     }
 
-    public void registerAdditionalSetting(String name, Object value){
+    /**
+     * Registers an additional setting linked to your game
+     */
+    public void registerAdditionalSetting(String name, Object value) {
         settingsMap.put(name, value);
     }
 
-    public Setting getAdditionalSettingValue(String name){
+    /**
+     * Returns the value of an additional setting of your game
+     */
+    public Setting getAdditionalSettingValue(String name) {
         return new Setting(settingsMap.get(name));
     }
 
-    public boolean isAdditionalSettingExisting(String name){
+    /**
+     * Returns true when the given additional setting exists
+     */
+    public boolean isAdditionalSettingExisting(String name) {
         return settingsMap.containsKey(name);
     }
 
-    public void setAdditionalSetting(String name, Object newValue){
+    /**
+     * Changes the value for an additional setting (args: setting name, setting new value)
+     */
+    public void setAdditionalSetting(String name, Object newValue) {
         settingsMap.remove(name);
         settingsMap.put(name, newValue);
     }
 
+    /**
+     * @exclude
+     */
     public void saveSettings() {
         GameApplication.log.info("Saving game settings...");
         GameDataFile data = new GameDataFile(settingsFile, false);
@@ -58,7 +85,7 @@ public class GameSettings {
         data.addKeyValue("vsync", String.valueOf(useVsync));
         data.addKeyValue("cursor", String.valueOf(useGameCursor));
         data.addKeyValue("fps", String.valueOf(showFPS));
-        for (Map.Entry entry : settingsMap.entrySet()){
+        for (Map.Entry entry : settingsMap.entrySet()) {
             data.addKeyValue((String) entry.getKey(), String.valueOf(entry.getValue()));
         }
 
@@ -67,6 +94,9 @@ public class GameSettings {
         GameApplication.log.info("Game settings saved.");
     }
 
+    /**
+     * @exclude
+     */
     public void loadSettings() {
         GameApplication.log.info("Loading game settings...");
         GameDataFile data = new GameDataFile(settingsFile, true);
@@ -82,33 +112,33 @@ public class GameSettings {
             content.remove("vsync");
             content.remove("cursor");
             content.remove("fps");
-            for (Map.Entry entry : content.entrySet()){
+            for (Map.Entry entry : content.entrySet()) {
                 GameApplication.log.info("Reading additional setting : " + String.valueOf(entry.getKey()));
                 String s = (String) entry.getValue();
                 Object obj;
-                try{
+                try {
                     obj = Integer.parseInt(s);
-                } catch (Exception e){
+                } catch (Exception e) {
                     GameApplication.log.info("No int found trying boolean");
-                    try{
+                    try {
                         if (s.equals("false") || s.equals("true")) {
                             obj = Boolean.parseBoolean(s);
                         } else {
                             throw new RuntimeException();
                         }
-                    } catch (Exception e1){
+                    } catch (Exception e1) {
                         GameApplication.log.info("No boolean found trying float");
-                        try{
+                        try {
                             obj = Float.parseFloat(s);
-                        } catch (Exception e2){
+                        } catch (Exception e2) {
                             GameApplication.log.info("No float found trying double");
-                            try{
+                            try {
                                 obj = Double.parseDouble(s);
-                            } catch (Exception e3){
+                            } catch (Exception e3) {
                                 GameApplication.log.info("No double found trying byte");
-                                try{
+                                try {
                                     obj = Byte.parseByte(s);
-                                } catch (Exception e4){
+                                } catch (Exception e4) {
                                     GameApplication.log.info("No byte found ; defaulting to string");
                                     obj = s;
                                 }

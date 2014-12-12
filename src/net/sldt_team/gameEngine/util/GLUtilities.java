@@ -12,18 +12,21 @@ public class GLUtilities {
     /**
      * Returns garphics-card's max supported version of OpenGL
      */
-    public static String getGLVersion(){
+    public static String getGLVersion() {
         return GL11.glGetString(GL11.GL_VERSION);
     }
 
     /**
      * Returns GL's max supported verion of GLSL (GL Shading Language)
      */
-    public static String getGLSLVersion(){
+    public static String getGLSLVersion() {
         return GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION);
     }
 
-    public static String getMaxTextureSize(){
+    /**
+     * Returns max texture size supported on user's computer's graphics card
+     */
+    public static String getMaxTextureSize() {
         IntBuffer intmax = BufferUtils.createIntBuffer(16);
         intmax.rewind();
         GL11.glGetInteger(GL11.GL_MAX_TEXTURE_SIZE, intmax);
@@ -34,22 +37,28 @@ public class GLUtilities {
     /**
      * Returns graphics card vendor name
      */
-    public static String getGLVendor(){
+    public static String getGLVendor() {
         return GL11.glGetString(GL11.GL_VENDOR);
     }
 
     /**
      * Returns the driver version
      */
-    public static String getDriverVersion(){
+    public static String getDriverVersion() {
         return Display.getVersion();
     }
 
     /**
      * Returns driver name
      */
-    public static String getDriverName(){
+    public static String getDriverName() {
         return Display.getAdapter();
     }
 
+    /**
+     * Switchs VSync mode depending on "enable" boolean
+     */
+    public static void switchVSync(boolean enable) {
+        Display.setVSyncEnabled(enable);
+    }
 }

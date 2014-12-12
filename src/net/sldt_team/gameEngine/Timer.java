@@ -1,15 +1,9 @@
 package net.sldt_team.gameEngine;
 
-public class Timer
-{
-    /** The number of timer ticks per second of real time */
-    float ticksPerSecond;
-
-    /**
-     * The time reported by the high-resolution clock at the last call of updateTimer(), in seconds
-     */
-    private double lastHRTime;
-
+/**
+ * @exclude
+ */
+public class Timer {
     /**
      * How many full ticks have turned over since the last call to updateTimer(), capped at 10.
      */
@@ -32,24 +26,14 @@ public class Timer
      */
     public float elapsedPartialTicks;
 
-    /**
-     * The time reported by the system clock at the last sync, in milliseconds
-     */
     private long lastSyncSysClock;
-
-    /**
-     * The time reported by the high-resolution clock at the last sync, in milliseconds
-     */
     private long lastSyncHRClock;
     private long field_74285_i;
-
-    /**
-     * A ratio used to sync the high-resolution clock to the system clock, updated once per second
-     */
     private double timeSyncAdjustment = 1.0D;
+    float ticksPerSecond;
+    private double lastHRTime;
 
-    public Timer(float par1)
-    {
+    public Timer(float par1) {
         this.ticksPerSecond = par1;
         this.lastSyncSysClock = GameApplication.getTime();
         this.lastSyncHRClock = System.nanoTime() / 1000000L;
@@ -58,33 +42,27 @@ public class Timer
     /**
      * Updates all fields of the Timer using the current time
      */
-    public void updateTimer()
-    {
+    public void updateTimer() {
         long i = GameApplication.getTime();
         long j = i - this.lastSyncSysClock;
         long k = System.nanoTime() / 1000000L;
-        double d0 = (double)k / 1000.0D;
+        double d0 = (double) k / 1000.0D;
 
-        if (j <= 1000L && j >= 0L)
-        {
+        if (j <= 1000L && j >= 0L) {
             this.field_74285_i += j;
 
-            if (this.field_74285_i > 1000L)
-            {
+            if (this.field_74285_i > 1000L) {
                 long l = k - this.lastSyncHRClock;
-                double d1 = (double)this.field_74285_i / (double)l;
+                double d1 = (double) this.field_74285_i / (double) l;
                 this.timeSyncAdjustment += (d1 - this.timeSyncAdjustment) * 0.20000000298023224D;
                 this.lastSyncHRClock = k;
                 this.field_74285_i = 0L;
             }
 
-            if (this.field_74285_i < 0L)
-            {
+            if (this.field_74285_i < 0L) {
                 this.lastSyncHRClock = k;
             }
-        }
-        else
-        {
+        } else {
             this.lastHRTime = d0;
         }
 
@@ -92,22 +70,19 @@ public class Timer
         double d2 = (d0 - this.lastHRTime) * this.timeSyncAdjustment;
         this.lastHRTime = d0;
 
-        if (d2 < 0.0D)
-        {
+        if (d2 < 0.0D) {
             d2 = 0.0D;
         }
 
-        if (d2 > 1.0D)
-        {
+        if (d2 > 1.0D) {
             d2 = 1.0D;
         }
 
-        this.elapsedPartialTicks = (float)((double)this.elapsedPartialTicks + d2 * (double)this.timerSpeed * (double)this.ticksPerSecond);
-        this.elapsedTicks = (int)this.elapsedPartialTicks;
-        this.elapsedPartialTicks -= (float)this.elapsedTicks;
+        this.elapsedPartialTicks = (float) ((double) this.elapsedPartialTicks + d2 * (double) this.timerSpeed * (double) this.ticksPerSecond);
+        this.elapsedTicks = (int) this.elapsedPartialTicks;
+        this.elapsedPartialTicks -= (float) this.elapsedTicks;
 
-        if (this.elapsedTicks > 10)
-        {
+        if (this.elapsedTicks > 10) {
             this.elapsedTicks = 10;
         }
 

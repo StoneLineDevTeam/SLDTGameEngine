@@ -4,35 +4,56 @@ public class Setting {
 
     private final Object obj;
 
-    protected Setting(Object b){
-        if (b == null){
-            obj = (byte)0;
+    /**
+     * @exclude
+     */
+    protected Setting(Object b) {
+        if (b == null) {
+            obj = (byte) 0;
         } else {
             obj = b;
         }
     }
 
-    public int asInteger(){
+    /**
+     * Returns this setting as Integer
+     */
+    public int asInteger() {
         return (Integer) obj;
     }
 
-    public boolean asBoolean(){
+    /**
+     * Returns this setting as Boolean
+     */
+    public boolean asBoolean() {
         return (Boolean) obj;
     }
 
-    public byte asByte(){
+    /**
+     * Returns this setting as Byte
+     */
+    public byte asByte() {
         return (Byte) obj;
     }
 
-    public String asString(){
+    /**
+     * Returns this setting as String
+     */
+    public String asString() {
         return String.valueOf(obj);
     }
 
-    public float asFloat(){
+    /**
+     * Returns this setting as Float
+     */
+    public float asFloat() {
         return (Float) obj;
     }
 
-    public double asDouble(){
+    /**
+     * Returns this setting as Double
+     */
+    public double asDouble() {
         return (Double) obj;
     }
 }

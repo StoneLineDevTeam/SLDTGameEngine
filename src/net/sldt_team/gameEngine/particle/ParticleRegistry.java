@@ -1,7 +1,7 @@
 package net.sldt_team.gameEngine.particle;
 
-import net.sldt_team.gameEngine.particle.defaultCode.ParticleButtonClick;
-import net.sldt_team.gameEngine.particle.defaultCode.ParticleNotExisting;
+import net.sldt_team.gameEngine.particle.basic.ParticleButtonClick;
+import net.sldt_team.gameEngine.particle.basic.ParticleNotExisting;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,8 +13,8 @@ public class ParticleRegistry {
     /**
      * This function retrieves a particle class from a particle name
      */
-    public static Class<? extends Particle> findDeclaredParticle(String name){
-        if (!definedParticles.containsKey(name)){
+    public static Class<? extends Particle> findDeclaredParticle(String name) {
+        if (!definedParticles.containsKey(name)) {
             return ParticleNotExisting.class;
         }
         return definedParticles.get(name);
@@ -23,7 +23,7 @@ public class ParticleRegistry {
     /**
      * Registers a particle with given name and class
      */
-    public static void registerParticle(String name, Class<? extends Particle> particleClass){
+    public static void registerParticle(String name, Class<? extends Particle> particleClass) {
         definedParticles.put(name, particleClass);
     }
 

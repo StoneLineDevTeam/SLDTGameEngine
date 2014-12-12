@@ -11,6 +11,7 @@ public interface RendersEventProvider {
      * 2 - After rendering everything
      */
     public void preRenderScreen(RenderEngine renderEngine, FontRenderer fontRenderer);
+
     public void postRenderScreen(RenderEngine renderEngine, FontRenderer fontRenderer);
 
 }

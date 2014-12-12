@@ -5,7 +5,10 @@ import java.util.Date;
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
 
-public class ConsoleHandlerFormator extends Formatter{
+/**
+ * @exclude
+ */
+public class ConsoleHandlerFormator extends Formatter {
 
     private SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy kk:mm:ss");
 

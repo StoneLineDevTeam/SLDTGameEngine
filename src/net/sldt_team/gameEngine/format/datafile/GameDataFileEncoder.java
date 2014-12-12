@@ -8,14 +8,17 @@ import net.sldt_team.gameEngine.exception.code.ErrorCode002;
 import java.util.Random;
 import java.util.StringTokenizer;
 
+/**
+ * @exclude
+ */
 public class GameDataFileEncoder {
     private int[] currentEncodingKey;
     private boolean needToGenerateNewKey;
 
-    public GameDataFileEncoder(boolean needNewKey){
+    public GameDataFileEncoder(boolean needNewKey) {
         currentEncodingKey = new int[16]; // 16-char encoding key
         needToGenerateNewKey = false;
-        if (needNewKey){
+        if (needNewKey) {
             generateNewEncodingKey();
             needToGenerateNewKey = true;
         }
@@ -24,11 +27,11 @@ public class GameDataFileEncoder {
     /**
      * Generates a new random key for starting encoding/decoding
      */
-    private void generateNewEncodingKey(){
+    private void generateNewEncodingKey() {
         Random r = new Random();
-        for (int i = 0 ; i < 16 ; i++){
+        for (int i = 0; i < 16; i++) {
             int j = MathUtilities.generateRandomInteger(-1, 10, r);
-            if (j <= 9 && j >= 0){
+            if (j <= 9 && j >= 0) {
                 currentEncodingKey[i] = j;
             } else {
                 i--;
@@ -39,11 +42,11 @@ public class GameDataFileEncoder {
     /**
      * Returns the current encoding key (used when let the program auto-generate the key)
      */
-    public String getCurrentEncodingKey(){
+    public String getCurrentEncodingKey() {
         String result = "";
-        for (int i = 0 ; i < currentEncodingKey.length ; i++){
+        for (int i = 0; i < currentEncodingKey.length; i++) {
             int var1 = currentEncodingKey[i];
-            if (i != 16){
+            if (i != 16) {
                 String currentChar = var1 + "-";
                 result += currentChar;
             } else {
@@ -56,19 +59,19 @@ public class GameDataFileEncoder {
     /**
      * Sets the encoding key of the current Security System from a simple string
      */
-    public void loadEncodingKeyFromString(String encodingKey){
-        if ((encodingKey.length() / 2) != 16){
+    public void loadEncodingKeyFromString(String encodingKey) {
+        if ((encodingKey.length() / 2) != 16) {
             GameApplication.log.severe("FATAL ERROR : Encoding key need to make 16 characters ; not : " + encodingKey.length() / 2);
             GameApplication.log.severe("IF_FAILED");
             throw new GameException(new ErrorCode002());
         }
         GameApplication.log.info("IF_JUMPED");
-        if (!needToGenerateNewKey){
+        if (!needToGenerateNewKey) {
             int i = 0;
             StringTokenizer tokenizer = new StringTokenizer(encodingKey, "-");
-            while(tokenizer.hasMoreTokens()){
+            while (tokenizer.hasMoreTokens()) {
                 String s = tokenizer.nextToken();
-                if (isNumeric(s)){
+                if (isNumeric(s)) {
                     currentEncodingKey[i] = Integer.valueOf(s);
                 }
                 i++;
@@ -80,14 +83,13 @@ public class GameDataFileEncoder {
         }
     }
 
-    private boolean isNumeric(String str)
-    {
+    private boolean isNumeric(String str) {
         return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
     }
 
-    private boolean containsKeyChar(int par1){
-        for (int i : currentEncodingKey){
-            if (i == par1){
+    private boolean containsKeyChar(int par1) {
+        for (int i : currentEncodingKey) {
+            if (i == par1) {
                 return true;
             }
         }
@@ -97,16 +99,16 @@ public class GameDataFileEncoder {
     /**
      * Returns the encoded form of a string
      */
-    public String encodeString(String toEncode){
+    public String encodeString(String toEncode) {
         String codedPass = "";
         int l = -1;
-        for (int i = 0 ; i < toEncode.length() ; i++)  {
+        for (int i = 0; i < toEncode.length(); i++) {
             l++;
-            if (l > 15){
+            if (l > 15) {
                 l = 0;
             }
             int c = toEncode.charAt(i) << currentEncodingKey[l];
-            codedPass += (char)c;
+            codedPass += (char) c;
         }
         return codedPass;
     }
@@ -114,16 +116,16 @@ public class GameDataFileEncoder {
     /**
      * Returns the decoded form of a string
      */
-    public String decodeString(String toDecode){
+    public String decodeString(String toDecode) {
         String decodedPass = "";
         int l = -1;
-        for (int i = 0 ; i < toDecode.length() ; i++)  {
+        for (int i = 0; i < toDecode.length(); i++) {
             l++;
-            if (l > 15){
+            if (l > 15) {
                 l = 0;
             }
             int c = toDecode.charAt(i) >> currentEncodingKey[l];
-            decodedPass += (char)c;
+            decodedPass += (char) c;
         }
         return decodedPass;
     }

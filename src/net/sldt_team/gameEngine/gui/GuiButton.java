@@ -16,12 +16,24 @@ public class GuiButton {
     private int buttonHeight;
     private boolean isMouseOver;
     private boolean clicked = false;
-    public String text;
+    private String text;
     private Runnable action;
 
     private int px;
     private int py;
 
+    /**
+     * Creates a Button to be used with anything that isn't a screen
+     *
+     * @param str     Button text
+     * @param pixelsX Button U1
+     * @param pixelsY Button V1
+     * @param b       Button texture
+     * @param x       Button X-Coord
+     * @param y       Button Y-Coord
+     * @param width   Button width
+     * @param height  Button height
+     */
     public GuiButton(String str, int pixelsX, int pixelsY, Texture b, int x, int y, int width, int height) {
         button = b;
         buttonX = x;
@@ -34,10 +46,16 @@ public class GuiButton {
         py = pixelsY;
     }
 
+    /**
+     * Sets the action of the button
+     */
     public void setAction(Runnable a) {
         action = a;
     }
 
+    /**
+     * Renders the button
+     */
     public void render(RenderEngine renderEngine, FontRenderer fontRenderer) {
         renderEngine.bindTexture(button);
         if (isMouseOver) {
@@ -47,9 +65,12 @@ public class GuiButton {
         }
         fontRenderer.unbindColor();
         fontRenderer.setRenderingSize(5);
-        fontRenderer.renderString(text, (buttonX + buttonWidth / 2) - (fontRenderer.getStringWidth(text) / 2), (buttonY + buttonHeight / 2) - (fontRenderer.CHAR_WIDTH / 2));
+        fontRenderer.renderString(text, (buttonX + buttonWidth / 2) - (fontRenderer.getStringWidth(text) / 2), (buttonY + buttonHeight / 2) - (fontRenderer.getCharWidth() / 2));
     }
 
+    /**
+     * Updates the button
+     */
     public void update() {
         int mouseX = Mouse.getX();
         int mouseY = GameApplication.getScreenHeight() - Mouse.getY();

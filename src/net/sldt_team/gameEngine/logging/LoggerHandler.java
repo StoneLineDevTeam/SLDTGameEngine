@@ -7,12 +7,15 @@ import java.util.Date;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
+/**
+ * @exclude
+ */
 public class LoggerHandler extends Handler {
 
     private GameApplication theGame;
     private SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy kk:mm:ss");
 
-    public LoggerHandler(GameApplication game){
+    public LoggerHandler(GameApplication game) {
         theGame = game;
     }
 
@@ -22,7 +25,7 @@ public class LoggerHandler extends Handler {
         String logName = "[" + date + " - " + record.getLoggerName() + "]";
         String level = "[" + record.getLevel() + "]  :  ";
 
-        String finalRecord =  logName + " " + level + record.getMessage() + "\n";
+        String finalRecord = logName + " " + level + record.getMessage() + "\n";
         theGame.logs.add(finalRecord);
     }
 

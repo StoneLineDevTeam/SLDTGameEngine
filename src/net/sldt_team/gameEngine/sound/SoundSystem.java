@@ -11,17 +11,20 @@ import java.util.logging.Logger;
 
 import static org.lwjgl.openal.AL10.*;
 
+/**
+ * @exclude
+ */
 public class SoundSystem {
     private Map<String, SoundEntry> soundMap;
 
     private Logger logger;
 
-    public SoundSystem(Logger log){
+    protected SoundSystem(Logger log) {
         soundMap = new HashMap<String, SoundEntry>();
         logger = log;
     }
 
-    private int loadGameSounds(){
+    private int loadGameSounds() {
         for (Map.Entry entry : soundMap.entrySet()) {
             SoundEntry sound = (SoundEntry) entry.getValue();
 
@@ -49,7 +52,7 @@ public class SoundSystem {
             if (alGetError() != AL_NO_ERROR)
                 return AL_FALSE;
 
-            alSourcei(sound.source.get(0), AL_BUFFER, sound.buffer.get(0) );
+            alSourcei(sound.source.get(0), AL_BUFFER, sound.buffer.get(0));
             alSourcef(sound.source.get(0), AL_PITCH, 1.0f);
             alSourcef(sound.source.get(0), AL_GAIN, 1.0f);
             alSource(sound.source.get(0), AL_POSITION, sound.sourcePos);
@@ -72,9 +75,9 @@ public class SoundSystem {
         }
     }
 
-    public void reloadSoundSystem(){
+    protected void reloadSoundSystem() {
         // Load the wav data.
-        if(loadGameSounds() == AL_FALSE) {
+        if (loadGameSounds() == AL_FALSE) {
             GameApplication.log.severe("Error loading data.");
             return;
         }
@@ -82,11 +85,11 @@ public class SoundSystem {
         setListenerValues();
     }
 
-    public void registerNewSource(String path, String name){
+    protected void registerNewSource(String path, String name) {
         soundMap.put(name, new SoundEntry(path));
     }
 
-    public void closeOpenALSoundSystem() {
+    protected void closeOpenALSoundSystem() {
         for (Map.Entry entry : soundMap.entrySet()) {
             SoundEntry sound = (SoundEntry) entry.getValue();
             alDeleteSources(sound.source);
@@ -94,14 +97,14 @@ public class SoundSystem {
         }
     }
 
-    public void setSoundLevel(String soundName, float newLevel){
+    protected void setSoundLevel(String soundName, float newLevel) {
         SoundEntry sound = soundMap.get(soundName);
         if (sound != null) {
             alSourcef(sound.source.get(0), AL_GAIN, newLevel);
         }
     }
 
-    public void setLoopingSound(String soundName, boolean loop){
+    protected void setLoopingSound(String soundName, boolean loop) {
         SoundEntry sound = soundMap.get(soundName);
         if (sound != null) {
             if (loop) {
@@ -112,30 +115,30 @@ public class SoundSystem {
         }
     }
 
-    public void pauseSound(String soundName){
+    protected void pauseSound(String soundName) {
         SoundEntry sound = soundMap.get(soundName);
-        if (sound != null){
+        if (sound != null) {
             alSourcePause(sound.source.get(0));
         }
     }
 
-    public void playSound(String soundName){
+    protected void playSound(String soundName) {
         SoundEntry sound = soundMap.get(soundName);
-        if (sound != null){
+        if (sound != null) {
             alSourcePlay(sound.source.get(0));
         }
     }
 
-    public void stopSound(String soundName){
+    protected void stopSound(String soundName) {
         SoundEntry sound = soundMap.get(soundName);
-        if (sound != null){
+        if (sound != null) {
             alSourceStop(sound.source.get(0));
         }
     }
 
-    public boolean isPlayingSound(String soundName){
+    protected boolean isPlayingSound(String soundName) {
         SoundEntry sound = soundMap.get(soundName);
-        if (sound != null){
+        if (sound != null) {
             int state = alGetSourcei(sound.source.get(0), AL_SOURCE_STATE);
 
             return (state == AL_PLAYING);

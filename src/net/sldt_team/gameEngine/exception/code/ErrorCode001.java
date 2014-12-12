@@ -2,7 +2,10 @@ package net.sldt_team.gameEngine.exception.code;
 
 import net.sldt_team.gameEngine.exception.GameError;
 
-public class ErrorCode001 implements GameError{
+/**
+ * @exclude
+ */
+public class ErrorCode001 implements GameError {
 
     public String getDescription() {
         return "GAME_DATA_FILE_EXCEPTION";

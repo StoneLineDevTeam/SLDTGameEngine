@@ -9,28 +9,36 @@ import java.util.*;
 public class GameDataFile {
 
     private Map<String, String> data;
+
+    /**
+     * Is the file ready to be used ?
+     */
     public boolean isReady;
+
     private boolean write;
     private File dataFile;
 
+    /**
+     * Opens a GDF (Game Data File)
+     *
+     * @param file The file to be loaded
+     * @param read Mode (true = readOnly, false = write)
+     */
     public GameDataFile(File file, boolean read) {
 
         File f1 = new File(file + ".gdf");
 
-        if (read){
+        if (read) {
             isReady = loadData(f1);
             return;
         }
         data = new HashMap<String, String>();
         isReady = false;
-        write =  true;
+        write = true;
         dataFile = f1;
     }
 
-    /**
-     * Load a data file (.bbd, BrickBroken Data file)
-     */
-    public boolean loadData(File dataFile) {
+    private boolean loadData(File dataFile) {
         if (dataFile.exists()) {
             data = new HashMap<String, String>();
             GameDataFileEncoder system = new GameDataFileEncoder(false);
@@ -43,15 +51,15 @@ public class GameDataFile {
                 int lines = 0;
                 String line;
 
-                while ((line = stream.readLine()) != null){
-                    if (line.contains("-")){
+                while ((line = stream.readLine()) != null) {
+                    if (line.contains("-")) {
                         system.loadEncodingKeyFromString(line);
                         continue;
-                    } else if (line.equals("file")){
+                    } else if (line.equals("file")) {
                         rawLines[lines] = line;
                         lines++;
                         continue;
-                    } else if (line.equals("end")){
+                    } else if (line.equals("end")) {
                         rawLines[lines] = line;
                         lines++;
                         continue;
@@ -61,16 +69,16 @@ public class GameDataFile {
                     lines++;
                 }
 
-                if (rawLines[0] != null && !rawLines[0].equals("file")){
+                if (rawLines[0] != null && !rawLines[0].equals("file")) {
                     throw new GameException(new ErrorCode001());
                 }
 
-                for (int i = 0 ; i < lines ; i++){
+                for (int i = 0; i < lines; i++) {
                     currentLine = rawLines[i];
-                    if (currentLine.equals("file")){
+                    if (currentLine.equals("file")) {
                         continue;
                     }
-                    if (currentLine.equals("end")){
+                    if (currentLine.equals("end")) {
                         return true;
                     }
                     List<String> l = splitFile("=>", currentLine);
@@ -107,19 +115,19 @@ public class GameDataFile {
         return false;
     }
 
-    private String convertFromStringToIntString(String toConvert){
+    private String convertFromStringToIntString(String toConvert) {
         String result = "";
-        for (int i = 0 ; i < toConvert.length() ; i++){
+        for (int i = 0; i < toConvert.length(); i++) {
             int j = toConvert.charAt(i);
             result += j + "+";
         }
         return result;
     }
 
-    private String convertFromIntStringToString(String toConvert){
+    private String convertFromIntStringToString(String toConvert) {
         String result = "";
         String[] strings = toConvert.split("\\+");
-        for (String s : strings){
+        for (String s : strings) {
             int i = Integer.parseInt(s);
             char c = (char) i;
             result += c;
@@ -127,8 +135,11 @@ public class GameDataFile {
         return result;
     }
 
-    public boolean saveData(){
-        if (isReady && write){
+    /**
+     * Call this method when you're ready to write (make sure mode is write and isReady is set to true)
+     */
+    public boolean saveData() {
+        if (isReady && write) {
             GameDataFileEncoder system = new GameDataFileEncoder(true);
             try {
                 BufferedWriter stream = new BufferedWriter(new FileWriter(dataFile));
@@ -136,7 +147,7 @@ public class GameDataFile {
                 stream.newLine();
                 stream.write(system.getCurrentEncodingKey());
                 stream.newLine();
-                for (Map.Entry<String, String> entry : data.entrySet()){
+                for (Map.Entry<String, String> entry : data.entrySet()) {
 
                     stream.append(convertFromStringToIntString(system.encodeString(entry.getKey() + "=>" + entry.getValue())));
                     stream.append('\n');
@@ -151,8 +162,11 @@ public class GameDataFile {
         return false;
     }
 
-    public boolean addKeyValue(String key, String value){
-        if (write){
+    /**
+     * Add a key/value to be saved in the file
+     */
+    public boolean addKeyValue(String key, String value) {
+        if (write) {
             data.put(key, value);
             return true;
         }
@@ -174,7 +188,7 @@ public class GameDataFile {
     /**
      * Returns a map who contains the variable name and the value
      */
-    public Map<String, String> getData(){
+    public Map<String, String> getData() {
         return data;
     }
 }

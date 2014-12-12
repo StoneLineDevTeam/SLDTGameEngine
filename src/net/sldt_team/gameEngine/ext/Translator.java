@@ -11,8 +11,16 @@ public class Translator {
     private String langFileName;
     private Map<String, String> langValues;
 
+    /**
+     * Instance of the Translator
+     */
     public static Translator instance;
 
+    /**
+     * Initializes the Translator
+     *
+     * @param langName langName (example: fr, en, english, french, ...)
+     */
     public Translator(String langName) {
         langFileName = langName;
         langValues = new HashMap<String, String>();
@@ -21,11 +29,17 @@ public class Translator {
         instance = this;
     }
 
-    public void updateUserLanguage(String newLanguage) {
+    /**
+     * Changes the Translator language
+     */
+    public void updateLanguage(String newLanguage) {
         langFileName = newLanguage;
         loadLanguage();
     }
 
+    /**
+     * Translates a string
+     */
     public String translate(String key) {
         if (langValues.containsKey(key))
             return langValues.get(key);

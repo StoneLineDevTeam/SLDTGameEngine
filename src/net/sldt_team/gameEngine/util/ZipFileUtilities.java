@@ -13,12 +13,14 @@ import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+/**
+ * Functions for reading a zip file
+ */
 public class ZipFileUtilities {
 
     /**
-     * Functions for reading a zip file
+     * Returns a list of files contained in the given archive (args: archive ZIP path)
      */
-
     public static ArrayList<String[]> getFiles(String archive) {
         ArrayList<String[]> fileList = new ArrayList<String[]>();
         ZipInputStream zipInputStream = null;
@@ -31,8 +33,8 @@ public class ZipFileUtilities {
             while (zipEntry != null) {
                 String[] file = new String[3];
                 file[0] = zipEntry.getName();
-                size = zipEntry.getSize()/1024;
-                file[1] = size.toString()+ " ko";
+                size = zipEntry.getSize() / 1024;
+                file[1] = size.toString() + " ko";
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
                 file[2] = simpleDateFormat.format(new Date(zipEntry.getTime()));
 
@@ -53,6 +55,9 @@ public class ZipFileUtilities {
         return fileList;
     }
 
+    /**
+     * Extracts the given file (String file) from the given archive (String archive), to a given directory (String destPath)
+     */
     public static void extractTo(String archive, String file, String destPath) throws IOException {
         ZipInputStream zipInputStream;
         ZipEntry zipEntry;

@@ -1,10 +1,10 @@
 package net.sldt_team.gameEngine.screen;
 
 import net.sldt_team.gameEngine.GameApplication;
-import net.sldt_team.gameEngine.controls.ScreenComponent;
-import net.sldt_team.gameEngine.controls.QuitButton;
+import net.sldt_team.gameEngine.components.ScreenComponent;
+import net.sldt_team.gameEngine.components.QuitButton;
 import net.sldt_team.gameEngine.ext.Translator;
-import net.sldt_team.gameEngine.renderengine.ColorRenderer;
+import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
 import net.sldt_team.gameEngine.renderengine.Texture;
@@ -20,17 +20,23 @@ import java.util.List;
 
 public abstract class Screen {
 
-    /** An instance of GameApplication */
+    /**
+     * An instance of GameApplication
+     */
     protected GameApplication theGame;
 
     private Texture backgroundImage;
     private List<ScreenComponent> screenComponents;
     private final ArrayList<Runnable> messageQueue = new ArrayList<Runnable>();
 
-    /** Whenever or not the screen buttons are enabled */
+    /**
+     * Whenever or not the screen buttons are enabled
+     */
     public boolean areControlsEnabled = true;
 
-    /** Whenever or not the cursor should be displayed */
+    /**
+     * Whenever or not the cursor should be displayed
+     */
     public boolean showCursor = true;
 
     private MessageDisplay displayedMessage = null;
@@ -43,8 +49,8 @@ public abstract class Screen {
      * Adds a component to the screen
      */
     public void addComponentToScreen(final ScreenComponent component) {
-        if (this instanceof ComponentsEventProvider){
-            ComponentsEventProvider provider = (ComponentsEventProvider)this;
+        if (this instanceof ComponentsEventProvider) {
+            ComponentsEventProvider provider = (ComponentsEventProvider) this;
             if (!provider.canComponentAdd(component)) {
                 return;
             }
@@ -54,8 +60,8 @@ public abstract class Screen {
             public void run() {
                 component.onComponentAdd();
                 screenComponents.add(component);
-                if(Screen.this instanceof ComponentsEventProvider){
-                    ComponentsEventProvider provider = (ComponentsEventProvider)Screen.this;
+                if (Screen.this instanceof ComponentsEventProvider) {
+                    ComponentsEventProvider provider = (ComponentsEventProvider) Screen.this;
                     provider.onComponentAdded(component);
                 }
             }
@@ -63,7 +69,10 @@ public abstract class Screen {
         messageQueue.add(r);
     }
 
-    public int getComponentsCount(){
+    /**
+     * Returns components count
+     */
+    public int getComponentsCount() {
         return screenComponents.size();
     }
 
@@ -71,8 +80,8 @@ public abstract class Screen {
      * Removes a component from the screen
      */
     public void removeComponentFromScreen(final ScreenComponent component) {
-        if (this instanceof ComponentsEventProvider){
-            ComponentsEventProvider provider = (ComponentsEventProvider)this;
+        if (this instanceof ComponentsEventProvider) {
+            ComponentsEventProvider provider = (ComponentsEventProvider) this;
             if (!provider.canComponentRemove(component)) {
                 return;
             }
@@ -82,8 +91,8 @@ public abstract class Screen {
             public void run() {
                 component.onComponentRemove();
                 screenComponents.remove(component);
-                if(Screen.this instanceof ComponentsEventProvider){
-                    ComponentsEventProvider provider = (ComponentsEventProvider)Screen.this;
+                if (Screen.this instanceof ComponentsEventProvider) {
+                    ComponentsEventProvider provider = (ComponentsEventProvider) Screen.this;
                     provider.onComponentRemoved();
                 }
             }
@@ -91,17 +100,20 @@ public abstract class Screen {
         messageQueue.add(r);
     }
 
-    public void initWindow() {
-        backgroundImage = theGame.renderEngine.loadTexture("backgrounds/mainBG.png");
+    /**
+     * @exclude
+     */
+    public void doInit() {
+        backgroundImage = theGame.renderEngine.loadTexture("backgrounds/mainBG");
         initScreen();
     }
 
     /**
      * Displays a message at the middle of the screen
      */
-    public void displayMessage(Message message){
-        if (this instanceof MessagesEventProvider){
-            MessagesEventProvider provider = (MessagesEventProvider)this;
+    public void displayMessage(Message message) {
+        if (this instanceof MessagesEventProvider) {
+            MessagesEventProvider provider = (MessagesEventProvider) this;
             if (!provider.canMessageDialogDisplay(message)) {
                 return;
             }
@@ -110,7 +122,7 @@ public abstract class Screen {
         displayedMessage = new MessageDisplay(message, this, theGame.renderEngine);
 
         if (this instanceof MessagesEventProvider) {
-            MessagesEventProvider provider = (MessagesEventProvider)this;
+            MessagesEventProvider provider = (MessagesEventProvider) this;
             provider.onMessageDialogDisplayed(message);
         }
     }
@@ -118,9 +130,9 @@ public abstract class Screen {
     /**
      * Removes the current displayed message
      */
-    public void clearDesplayedMessage(){
-        if (this instanceof MessagesEventProvider){
-            MessagesEventProvider provider = (MessagesEventProvider)this;
+    public void clearDesplayedMessage() {
+        if (this instanceof MessagesEventProvider) {
+            MessagesEventProvider provider = (MessagesEventProvider) this;
             if (!provider.canMessageDialogClear(displayedMessage.theMessage)) {
                 return;
             }
@@ -129,7 +141,7 @@ public abstract class Screen {
         displayedMessage = null;
 
         if (this instanceof MessagesEventProvider) {
-            MessagesEventProvider provider = (MessagesEventProvider)this;
+            MessagesEventProvider provider = (MessagesEventProvider) this;
             provider.onMessageDialogCleared();
         }
     }
@@ -153,6 +165,9 @@ public abstract class Screen {
         addComponentToScreen(quit);
     }
 
+    /**
+     * @exclude
+     */
     public void setGame(GameApplication game) {
         theGame = game;
     }
@@ -160,7 +175,7 @@ public abstract class Screen {
     /**
      * Refrechs the screen
      */
-    public void refreshScreen(){
+    public void refreshScreen() {
         Runnable r = new Runnable() {
             public void run() {
                 for (ScreenComponent component : screenComponents) {
@@ -174,6 +189,9 @@ public abstract class Screen {
         initScreen();
     }
 
+    /**
+     * @exclude
+     */
     public void onExit() {
         Runnable r = new Runnable() {
             public void run() {
@@ -189,8 +207,11 @@ public abstract class Screen {
         onExitingScreen();
     }
 
+    /**
+     * @exclude
+     */
     public void onTick() {
-        if (displayedMessage != null){
+        if (displayedMessage != null) {
             displayedMessage.updateMessage();
             return;
         }
@@ -202,16 +223,19 @@ public abstract class Screen {
         }
 
         for (Runnable r : messageQueue) {
-             r.run();
+            r.run();
         }
         messageQueue.clear();
 
         updateScreen();
     }
 
+    /**
+     * @exclude
+     */
     public void drawWindow(RenderEngine renderEngine, FontRenderer fontRenderer) {
-        if (this instanceof RendersEventProvider){
-            RendersEventProvider provider = (RendersEventProvider)this;
+        if (this instanceof RendersEventProvider) {
+            RendersEventProvider provider = (RendersEventProvider) this;
             provider.preRenderScreen(renderEngine, fontRenderer);
         } else {
             renderEngine.bindTexture(backgroundImage);
@@ -227,8 +251,8 @@ public abstract class Screen {
 
         if (theGame.gameSettings.showFPS) {
             fontRenderer.setRenderingSize(4);
-            fontRenderer.setRenderingColor(ColorRenderer.RED);
-            fontRenderer.renderString("FPS : " + theGame.finalFPS, 0, 50);
+            fontRenderer.setRenderingColor(ColorHelper.RED);
+            fontRenderer.renderString("FPS : " + theGame.getGameFPS(), 0, 50);
         }
 
         if (!showCursor) {
@@ -237,12 +261,12 @@ public abstract class Screen {
             Mouse.setGrabbed(false);
         }
 
-        if (displayedMessage != null){
+        if (displayedMessage != null) {
             displayedMessage.renderMessage(renderEngine, fontRenderer);
         }
 
-        if (this instanceof RendersEventProvider){
-            RendersEventProvider provider = (RendersEventProvider)this;
+        if (this instanceof RendersEventProvider) {
+            RendersEventProvider provider = (RendersEventProvider) this;
             provider.postRenderScreen(renderEngine, fontRenderer);
         }
     }

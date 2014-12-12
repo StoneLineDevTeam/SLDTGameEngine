@@ -10,16 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileUtilities {
+
+    /**
+     * Deletes a file
+     */
     public static void delete(File file)
             throws IOException {
 
-        if(file.isDirectory()){
+        if (file.isDirectory()) {
             System.out.println("Deleting directory " + file.getAbsolutePath());
             //directory is empty, then delete it
-            if(file.list().length==0){
+            if (file.list().length == 0) {
                 if (file.delete())
                     System.out.println("Directory is deleted : " + file.getAbsolutePath());
-            }else{
+            } else {
                 //list all the directory contents
                 String files[] = file.list();
 
@@ -32,19 +36,19 @@ public class FileUtilities {
                 }
 
                 //check the directory again, if empty then delete it
-                if(file.list().length==0){
+                if (file.list().length == 0) {
                     if (file.delete())
                         System.out.println("Directory is deleted : " + file.getAbsolutePath());
                 }
             }
-        }else{
+        } else {
             //if file, then delete it
             if (file.delete())
                 System.out.println("File is deleted : " + file.getAbsolutePath());
         }
     }
 
-    private static byte[] createChecksum(InputStream stream){
+    private static byte[] createChecksum(InputStream stream) {
         try {
             byte[] buffer = new byte[1024];
             MessageDigest complete = MessageDigest.getInstance("MD5");
@@ -59,52 +63,67 @@ public class FileUtilities {
 
             stream.close();
             return complete.digest();
-        } catch(Exception e){
+        } catch (Exception e) {
             throw new GameException(new ErrorCode004());
         }
     }
 
-    public static String getMD5Checksum(InputStream stream){
+    /**
+     * Returns MD5 signature of the given InputStream
+     */
+    public static String getMD5Checksum(InputStream stream) {
         byte[] b = createChecksum(stream);
         String result = "";
 
-        for (int i=0; i < b.length; i++) {
-            result += Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
+        for (int i = 0; i < b.length; i++) {
+            result += Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1);
         }
         return result;
     }
 
-    public static File getResourcesDirectory(){
+    /**
+     * Get resources directory relative to game directory
+     */
+    public static File getResourcesDirectory() {
         return new File(GameApplication.getGameDir() + File.separator + "resources" + File.separator);
     }
 
-    public static File getSavesDirectory(){
+    /**
+     * Get saves directory relative to game directory
+     */
+    public static File getSavesDirectory() {
         return new File(GameApplication.getGameDir() + File.separator + "save" + File.separator);
     }
 
-    public static File getFile(String s){
+    /**
+     * Get a file relative to game directory
+     */
+    public static File getFile(String s) {
         return new File(GameApplication.getGameDir() + File.separator, s);
     }
 
-    public static boolean copyFile(File from, File to){
+    /**
+     * Copy the file/directory "from" and paste it in "to"
+     */
+    public static boolean copyFile(File from, File to) {
         if (!from.exists())
             return false;
 
-        if (from.isDirectory()){
+        if (from.isDirectory()) {
             if (!to.exists()) {
                 to.mkdirs();
             }
             File[] files = from.listFiles();
             List<Boolean> bools = new ArrayList<Boolean>();
-            for (File f : files){
-                if (f.isDirectory()){
+            for (File f : files) {
+                if (f.isDirectory()) {
                     bools.add(copyFile(f, new File(to + File.separator + f.getName())));
                 } else {
                     bools.add(copySingleFile(f, new File(to + File.separator + f.getName())));
                 }
             }
-            for (Boolean b : bools){
-                if (!b){
+            for (Boolean b : bools) {
+                if (!b) {
                     return false;
                 }
             }
@@ -114,14 +133,14 @@ public class FileUtilities {
         }
     }
 
-    private static boolean copySingleFile(File theFile, File newFile){
+    private static boolean copySingleFile(File theFile, File newFile) {
         try {
             FileInputStream in = new FileInputStream(theFile);
             FileOutputStream out = new FileOutputStream(newFile);
 
             byte[] b = new byte[1024];
             int length;
-            while ((length = in.read(b)) > 0){
+            while ((length = in.read(b)) > 0) {
                 out.write(b, 0, length);
             }
 
@@ -135,13 +154,16 @@ public class FileUtilities {
         }
     }
 
-    public static String getFileExtention(File f){
+    /**
+     * Returns the file extension of the given file
+     */
+    public static String getFileExtension(File f) {
         String ext = null;
         String s = f.getName();
         int i = s.lastIndexOf('.');
 
-        if (i > 0 &&  i < s.length() - 1) {
-            ext = s.substring(i+1).toLowerCase();
+        if (i > 0 && i < s.length() - 1) {
+            ext = s.substring(i + 1).toLowerCase();
         }
         return ext;
     }

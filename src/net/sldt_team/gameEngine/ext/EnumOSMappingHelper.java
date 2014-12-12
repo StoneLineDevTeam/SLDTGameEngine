@@ -1,5 +1,8 @@
 package net.sldt_team.gameEngine.ext;
 
+/**
+ * @exclude
+ */
 public class EnumOSMappingHelper {
     public static final int enumOSMappingArray[];
 

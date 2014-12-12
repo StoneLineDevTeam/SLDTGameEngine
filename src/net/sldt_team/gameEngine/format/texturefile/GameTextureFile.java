@@ -6,16 +6,19 @@ import net.sldt_team.gameEngine.renderengine.RenderEngine;
 import java.io.*;
 import java.nio.ByteBuffer;
 
+/**
+ * Useless because never finished
+ */
 public class GameTextureFile {
 
     private File fileLocation;
     private InputStream fileStream;
 
-    public GameTextureFile(File file){
+    public GameTextureFile(File file) {
         fileLocation = new File(file + ".gtf");
     }
 
-    public InputStream decodeAsPNG(){
+    public InputStream decodeAsPNG() {
         try {
             FileInputStream in = new FileInputStream(fileLocation);
             OutputStream out = new ByteArrayOutputStream();
@@ -31,15 +34,15 @@ public class GameTextureFile {
             }
 
             in.close();
-            return new ByteArrayInputStream(((ByteArrayOutputStream)out).toByteArray());
-        } catch (IOException e){
+            return new ByteArrayInputStream(((ByteArrayOutputStream) out).toByteArray());
+        } catch (IOException e) {
             GameApplication.log.warning("Unable to decode texture file : " + fileLocation);
         }
         return null;
     }
 
-    public ByteBuffer openGLDecode(RenderEngine renderEngine){
-        if (fileStream == null){
+    public ByteBuffer openGLDecode(RenderEngine renderEngine) {
+        if (fileStream == null) {
             throw new NullPointerException("Unable to decode PNG input stream, cause : FILE_INPUT_STREAM = null");
         }
         try {

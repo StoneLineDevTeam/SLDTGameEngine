@@ -10,20 +10,26 @@ public class SoundManager {
     private Map<String, File> soundsMap;
     private SoundSystem system;
 
+    /**
+     * @exclude
+     */
     public SoundManager(Logger log) {
         soundsMap = new HashMap<String, File>();
         system = new SoundSystem(log);
     }
 
     /**
-     * Add a sound in the sound map to play it
+     * Registers a new sound for your game (args: sound name, sound file)
      */
     public void addSound(String name, File path) {
         soundsMap.put(name, path);
     }
 
-    public void initSoundManager(){
-        for (Map.Entry entry : soundsMap.entrySet()){
+    /**
+     * Inits the sound manager (You must call this method after registering game sounds) - Call it under initGame() otherwise it'll crash due to OpenAL Main thread not created...
+     */
+    public void initSoundManager() {
+        for (Map.Entry entry : soundsMap.entrySet()) {
             String name = (String) entry.getKey();
             File file = (File) entry.getValue();
 
@@ -32,7 +38,10 @@ public class SoundManager {
         system.reloadSoundSystem();
     }
 
-    public void onClosingGame(){
+    /**
+     * @exclude
+     */
+    public void onClosingGame() {
         soundsMap.clear();
         system.closeOpenALSoundSystem();
     }
@@ -44,6 +53,9 @@ public class SoundManager {
         system.stopSound(name);
     }
 
+    /**
+     * Returns whenever the given sound name is currently played
+     */
     public boolean isPlaying(String name) {
         return system.isPlayingSound(name);
     }

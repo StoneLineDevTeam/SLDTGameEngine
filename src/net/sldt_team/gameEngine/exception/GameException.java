@@ -9,27 +9,46 @@ public class GameException extends RuntimeException {
     private GameError errorCode;
     private Exception exception;
 
-    public GameException(GameError code){
+    /**
+     * Generates a Game Exception
+     *
+     * @param code Error code
+     */
+    public GameException(GameError code) {
         errorCode = code;
         exception = new Exception(errorCode.getCode() + " -> " + errorCode.getDescription());
     }
 
-    public GameException(Exception ex){
+    /**
+     * Generates a Game Exception
+     *
+     * @param ex The JVM thrown exception
+     */
+    public GameException(Exception ex) {
         exception = ex;
-        if (errorCode == null){
+        if (errorCode == null) {
             errorCode = new ErrorCode009();
         }
     }
 
+    /**
+     * Returns stack trace of this exception's JVM base exception class
+     */
     public StackTraceElement[] getStackTrace() {
         return exception.getStackTrace();
     }
 
-    public String getMessage(){
+    /**
+     * Get the message of this exception
+     */
+    public String getMessage() {
         return exception.getMessage();
     }
 
-    public void printStackTrace(){
+    /**
+     * Prints the whole stack trace
+     */
+    public void printStackTrace() {
         System.err.println("\n");
         System.err.println("\n");
         System.err.println(errorCode.getCode() + " -> " + errorCode.getDescription() + "\n");
@@ -44,18 +63,15 @@ public class GameException extends RuntimeException {
         System.err.println("---------------------------");
         System.err.println("|-->    Stack Trace    <--|");
         System.err.println("---------------------------");
-        /**
-        System.err.println(exception.getMessage());
-        for (String s : getJVMException()){
-            System.err.println(s);
-        }
-         */
         exception.printStackTrace();
     }
 
-    public List<String> getJVMException(){
+    /**
+     * Returns exception content as String
+     */
+    public List<String> getJVMException() {
         List<String> list = new ArrayList<String>();
-        for (StackTraceElement element : getStackTrace()){
+        for (StackTraceElement element : getStackTrace()) {
             list.add("\tat " + element);
         }
         return list;

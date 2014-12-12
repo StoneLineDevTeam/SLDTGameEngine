@@ -9,9 +9,12 @@ public abstract class GuiScreen extends Screen {
 
     private Gui currentGui;
 
+    /**
+     * Displays a new Gui
+     */
     public void displayGui(Gui par1Gui) {
-        if (this instanceof GuisEventProvider){
-            GuisEventProvider provider = (GuisEventProvider)this;
+        if (this instanceof GuisEventProvider) {
+            GuisEventProvider provider = (GuisEventProvider) this;
             if (!provider.canGuiDisplay(par1Gui)) {
                 return;
             }
@@ -22,15 +25,18 @@ public abstract class GuiScreen extends Screen {
         par1Gui.onGuiInit();
         currentGui = par1Gui;
 
-        if (this instanceof GuisEventProvider){
-            GuisEventProvider provider = (GuisEventProvider)this;
+        if (this instanceof GuisEventProvider) {
+            GuisEventProvider provider = (GuisEventProvider) this;
             provider.onGuiDisplayed(par1Gui);
         }
     }
 
+    /**
+     * Clears the current displayed Gui
+     */
     public void clearGui() {
-        if (this instanceof GuisEventProvider){
-            GuisEventProvider provider = (GuisEventProvider)this;
+        if (this instanceof GuisEventProvider) {
+            GuisEventProvider provider = (GuisEventProvider) this;
             if (!provider.canGuiClear(currentGui)) {
                 return;
             }
@@ -39,12 +45,15 @@ public abstract class GuiScreen extends Screen {
         currentGui = null;
         areControlsEnabled = true;
 
-        if (this instanceof GuisEventProvider){
-            GuisEventProvider provider = (GuisEventProvider)this;
+        if (this instanceof GuisEventProvider) {
+            GuisEventProvider provider = (GuisEventProvider) this;
             provider.onGuiCleared();
         }
     }
 
+    /**
+     * @exclude
+     */
     public void onTick() {
         if (currentGui != null) {
             currentGui.onUpdate();
@@ -52,6 +61,9 @@ public abstract class GuiScreen extends Screen {
         super.onTick();
     }
 
+    /**
+     * @exclude
+     */
     public void drawWindow(RenderEngine renderEngine, FontRenderer fontRenderer) {
         super.drawWindow(renderEngine, fontRenderer);
         if (currentGui != null) {

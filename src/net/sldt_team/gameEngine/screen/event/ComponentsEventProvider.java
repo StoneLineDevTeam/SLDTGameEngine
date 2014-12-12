@@ -1,22 +1,26 @@
 package net.sldt_team.gameEngine.screen.event;
 
-import net.sldt_team.gameEngine.controls.ScreenComponent;
+import net.sldt_team.gameEngine.components.ScreenComponent;
 
 public interface ComponentsEventProvider {
 
     /**
-     * Components events
-     * 1 - Component added
-     * 2 - Component removed
+     * Component added
      */
     public void onComponentAdded(ScreenComponent component);
+
+    /**
+     * Component removed
+     */
     public void onComponentRemoved();
 
     /**
-     * Components events
-     * 1 - Can component added
-     * 2 - Can component removed
+     * Can component be added
      */
     public boolean canComponentAdd(ScreenComponent component);
+
+    /**
+     * Can component be removed
+     */
     public boolean canComponentRemove(ScreenComponent component);
 }

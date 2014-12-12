@@ -13,6 +13,7 @@ import net.sldt_team.gameEngine.logging.OutputStreamToLogger;
 import net.sldt_team.gameEngine.particle.ParticleManager;
 import net.sldt_team.gameEngine.renderengine.*;
 import net.sldt_team.gameEngine.renderengine.assetSystem.AssetType;
+import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.screen.Screen;
 import net.sldt_team.gameEngine.sound.SoundManager;
 import org.lwjgl.LWJGLException;
@@ -33,9 +34,11 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class GameApplication implements IGame, Runnable {
+public abstract class GameApplication implements Runnable {
 
-    /** Display settings */
+    /**
+     * Display settings
+     */
     private static boolean isWindowed = true;
     private static int sizeX = 1600;
     private static int sizeY = 900;
@@ -46,23 +49,41 @@ public abstract class GameApplication implements IGame, Runnable {
     //Game timer
     private Timer gameTimer;
 
-    /** FPS calculation */
+    /**
+     * FPS calculation
+     */
     private int fps;
     private long lastFPS;
-    public int finalFPS;
+    private int finalFPS;
 
-    /** The rendering system */
+    /**
+     * The rendering engine
+     */
     public RenderEngine renderEngine;
+
+    /**
+     * The font-rendering engine
+     */
     public FontRenderer fontRenderer;
+
+    /**
+     * The particle engine
+     */
     public ParticleManager particleManager;
 
-    //Player Session
+    /**
+     * The player session
+     */
     public Session playerSession;
 
-    //The Sound manager
+    /**
+     * The sound manager
+     */
     public SoundManager soundManager;
 
-    //Game Settings
+    /**
+     * Instance of the game settings
+     */
     public GameSettings gameSettings;
 
     //The current screen
@@ -77,10 +98,14 @@ public abstract class GameApplication implements IGame, Runnable {
     //Ticks calcultion used to display the SLDT's GameEngine page
     private int initTime;
 
-    //Game logs
+    /**
+     * Game logs
+     */
     public List<String> logs = new ArrayList<String>();
 
-    //Game logger
+    /**
+     * Game Logger
+     */
     public static Logger log;
 
     //The name of app directory
@@ -106,15 +131,17 @@ public abstract class GameApplication implements IGame, Runnable {
     private float timer;
 
     /**
+     * Initializes a new Game App
+     *
      * @param loggerName The name of the game logger
-     * @param session The player session if this game uses multiplayer or if you need user/password/sessionID storage
+     * @param session    The player session if this game uses multiplayer or if you need user/password/sessionID storage
      * @param timerPower The power of the game timer (freqence of call to update function)
-     * @param dirName The game directory name (set it to #ROOT_FOLDER# for the app root folder)
-     * @param exhandler How the game should handles exception thrown in the main thread
-     * @param name The name of the game to display on application's title bar
-     * @param version The game version (use getGameVersion() to get it)
+     * @param dirName    The game directory name (set it to #ROOT_FOLDER# for the app root folder)
+     * @param exhandler  How the game should handles exception thrown in the main thread
+     * @param name       The name of the game to display on application's title bar
+     * @param version    The game version (use getGameVersion() to get it)
      */
-    public GameApplication(String loggerName, Session session, float timerPower, String dirName, ExceptionHandler exhandler, String name, String version){
+    public GameApplication(String loggerName, Session session, float timerPower, String dirName, ExceptionHandler exhandler, String name, String version) {
         log = Logger.getLogger(loggerName);
         appDirName = dirName;
         exceptionHandler = exhandler;
@@ -138,11 +165,10 @@ public abstract class GameApplication implements IGame, Runnable {
     }
 
     /**
-     * Sets the default font that FontRenderer needs to use
+     * Get the current number of FPS
      */
-    public void setFontName(String s){
-        fontName = s;
-        fontRenderer.reloadFontRenderer(fontName);
+    public int getGameFPS() {
+        return finalFPS;
     }
 
     /**
@@ -166,12 +192,12 @@ public abstract class GameApplication implements IGame, Runnable {
 
         lastFPS = getTime();
         initialized = false;
-        if (getAssetsFileType() == null){
+        if (getAssetsFileType() == null) {
             throw new GameException(new ErrorCode008());
         }
         renderEngine = new RenderEngine(exceptionHandler, new AssetManager(getGameDir() + File.separator + "resources" + File.separator + gameName.toLowerCase(), getAssetsFileType()), log);
         fontRenderer = new FontRenderer(renderEngine, fontName);
-        background = "backgrounds/sldtBG.png";
+        background = "backgrounds/sldtBG";
         particleManager = new ParticleManager();
         soundManager = new SoundManager(log);
         gameSettings.loadSettings();
@@ -181,7 +207,7 @@ public abstract class GameApplication implements IGame, Runnable {
      * Returns the game directory
      */
     public static File getGameDir() {
-        if (appDirName.equals("#ROOT_FOLDER#")){
+        if (appDirName.equals("#ROOT_FOLDER#")) {
             return new File(".");
         }
         return getAppDir(appDirName);
@@ -261,31 +287,33 @@ public abstract class GameApplication implements IGame, Runnable {
     }
 
     private void update() {
-        if (!initialized){
+        fontRenderer.updateFontAnimation();
+
+        if (!initialized) {
             initTime += 1;
             sldtTicks++;
             sldtScaleTicks++;
-            if (sldtTicks >= 30){
+            if (sldtTicks >= 30) {
                 rotate += 0.1F;
                 sldtTicks = 0;
             }
-            if (sldtScaleTicks >= 60){
+            if (sldtScaleTicks >= 60) {
                 scale += 0.001F;
                 sldtScaleTicks = 0;
             }
-            if (initTime >= 5000){
+            if (initTime >= 5000) {
                 initialized = true;
                 gameTimer = new Timer(timer);
                 initGame();
             }
-            if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)){
+            if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
                 System.exit(0);
             }
         }
 
 
-        if (!isWindowExiting){
-            if (currentFrame != null){
+        if (!isWindowExiting) {
+            if (currentFrame != null) {
                 currentFrame.onTick();
             }
         }
@@ -296,9 +324,9 @@ public abstract class GameApplication implements IGame, Runnable {
     }
 
     private void render() {
-        if (!initialized){
+        if (!initialized) {
             fontRenderer.setRenderingSize(5);
-            fontRenderer.setRenderingColor(ColorRenderer.GREEN);
+            fontRenderer.setRenderingColor(ColorHelper.GREEN);
             fontRenderer.renderString("SLDT's GameEngine " + EngineConstants.ENGINE_VERSION, getScreenWidth() - fontRenderer.getStringWidth("SLDT's GameEngine " + EngineConstants.ENGINE_VERSION), getScreenHeight() - 64);
             Texture i = renderEngine.loadTexture(background);
             renderEngine.bindTexture(i);
@@ -307,16 +335,16 @@ public abstract class GameApplication implements IGame, Runnable {
             renderEngine.renderQuad(10, 10, getScreenWidth() - 20, getScreenHeight() - 20);
         }
 
-        if (!isWindowExiting){
-            if (currentFrame != null){
+        if (!isWindowExiting) {
+            if (currentFrame != null) {
                 currentFrame.drawWindow(renderEngine, fontRenderer);
             }
         }
 
-        if (isWindowExiting){
-            renderEngine.bindColor(ColorRenderer.BLACK);
+        if (isWindowExiting) {
+            renderEngine.bindColor(ColorHelper.BLACK);
             renderEngine.renderQuad(0, 0, getScreenWidth(), getScreenHeight());
-            fontRenderer.setRenderingColor(ColorRenderer.WHITE);
+            fontRenderer.setRenderingColor(ColorHelper.WHITE);
             fontRenderer.renderString("Loading...", 20, 20);
         }
 
@@ -337,7 +365,7 @@ public abstract class GameApplication implements IGame, Runnable {
         }
         screen.setGame(this);
         currentFrame = screen;
-        currentFrame.initWindow();
+        currentFrame.doInit();
         isWindowExiting = false;
     }
 
@@ -345,7 +373,7 @@ public abstract class GameApplication implements IGame, Runnable {
      * Returns the user's screen width
      */
     public static int getScreenWidth() {
-        if (isWindowed){
+        if (isWindowed) {
             return sizeX;
         }
         Toolkit tool = Toolkit.getDefaultToolkit();
@@ -356,7 +384,7 @@ public abstract class GameApplication implements IGame, Runnable {
      * Returns the user's screen height
      */
     public static int getScreenHeight() {
-        if (isWindowed){
+        if (isWindowed) {
             return sizeY;
         }
         Toolkit tool = Toolkit.getDefaultToolkit();
@@ -367,16 +395,16 @@ public abstract class GameApplication implements IGame, Runnable {
      * Sets up the main game thread (args : game - the game witch the thread is for, name - the name of the game to display in thread name,
      * settings are the default window settings like resolution and fullscreen boolean)
      */
-    public static void setupThread(GameApplication game, String name, AppSettings settings){
-        isWindowed = (Boolean)settings.getWindowSettings().get("SLDT_WINDOW_FULLSCREEN");
-        sizeX = (Integer)settings.getWindowSettings().get("SLDT_WINDOW_WIDTH");
-        sizeY = (Integer)settings.getWindowSettings().get("SLDT_WINDOW_HEIGHT");
-        Thread thread = new Thread(game, name +  " Main - Thread");
+    public static void setupThread(GameApplication game, String name, AppSettings settings) {
+        isWindowed = (Boolean) settings.getWindowSettings().get("SLDT_WINDOW_FULLSCREEN");
+        sizeX = (Integer) settings.getWindowSettings().get("SLDT_WINDOW_WIDTH");
+        sizeY = (Integer) settings.getWindowSettings().get("SLDT_WINDOW_HEIGHT");
+        Thread thread = new Thread(game, name + " Main - Thread");
         thread.setPriority(10);
         thread.start();
     }
 
-    private void initOpenGL(){
+    private void initOpenGL() {
         GL11.glPushMatrix();
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
@@ -387,8 +415,8 @@ public abstract class GameApplication implements IGame, Runnable {
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
     }
 
-    private void onGameCrash(Exception e){
-        if (! (e instanceof GameException)) {
+    private void onGameCrash(Exception e) {
+        if (!(e instanceof GameException)) {
             exceptionHandler.handleException(new GameException(e));
         } else {
             exceptionHandler.handleException((GameException) e);
@@ -417,15 +445,15 @@ public abstract class GameApplication implements IGame, Runnable {
 
     private DisplayMode findDisplayMode(int width, int height, int bpp) throws LWJGLException {
         DisplayMode[] modes = Display.getAvailableDisplayModes();
-        for ( DisplayMode mode : modes ) {
-            if ( mode.getWidth() == width && mode.getHeight() == height && mode.getBitsPerPixel() >= bpp && mode.getFrequency() <= 60 ) {
+        for (DisplayMode mode : modes) {
+            if (mode.getWidth() == width && mode.getHeight() == height && mode.getBitsPerPixel() >= bpp && mode.getFrequency() <= 60) {
                 return mode;
             }
         }
         return Display.getDesktopDisplayMode();
     }
 
-    protected void refreshOpenGLDisplay() throws LWJGLException, IOException {
+    private void refreshOpenGLDisplay() throws LWJGLException, IOException {
         Display.destroy();
         if (isWindowed) {
             Display.setDisplayMode(findDisplayMode(sizeX, sizeY, Display.getDisplayMode().getBitsPerPixel()));
@@ -443,7 +471,7 @@ public abstract class GameApplication implements IGame, Runnable {
         Display.setIcon(shit);
         Display.create();
         initOpenGL();
-        if (getAssetsFileType() == null){
+        if (getAssetsFileType() == null) {
             throw new GameException(new ErrorCode008());
         }
         renderEngine = new RenderEngine(exceptionHandler, new AssetManager(getGameDir() + File.separator + "resources" + File.separator + gameName.toLowerCase(), getAssetsFileType()), log);
@@ -456,19 +484,22 @@ public abstract class GameApplication implements IGame, Runnable {
     /**
      * Updates the display mode (resolution and fullscreen)
      */
-    public void updateGameDisplay(AppSettings settings){
+    public void updateGameDisplay(AppSettings settings) {
         try {
-            isWindowed = (Boolean)settings.getWindowSettings().get("SLDT_WINDOW_FULLSCREEN");
-            sizeX = (Integer)settings.getWindowSettings().get("SLDT_WINDOW_WIDTH");
-            sizeY = (Integer)settings.getWindowSettings().get("SLDT_WINDOW_HEIGHT");
+            isWindowed = (Boolean) settings.getWindowSettings().get("SLDT_WINDOW_FULLSCREEN");
+            sizeX = (Integer) settings.getWindowSettings().get("SLDT_WINDOW_WIDTH");
+            sizeY = (Integer) settings.getWindowSettings().get("SLDT_WINDOW_HEIGHT");
             refreshOpenGLDisplay();
-        } catch (LWJGLException e){
+        } catch (LWJGLException e) {
             onGameCrash(e);
         } catch (IOException e) {
             onGameCrash(e);
         }
     }
 
+    /**
+     * @exclude
+     */
     public void run() {
         try {
             if (isWindowed) {
@@ -495,7 +526,7 @@ public abstract class GameApplication implements IGame, Runnable {
             }
             Display.setIcon(shit);
             //Mouse.setNativeCursor(new org.lwjgl.input.Cursor(16, 16, 0, 0, 1, getHandMousePointer(), null));
-            while (!Display.isCloseRequested()){
+            while (!Display.isCloseRequested()) {
                 Display.update();
                 gameTimer.updateTimer();
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
@@ -507,7 +538,7 @@ public abstract class GameApplication implements IGame, Runnable {
                 updateFPS();
             }
             closeGame();
-        } catch (Exception e){
+        } catch (Exception e) {
             onGameCrash(e);
         }
     }
@@ -515,15 +546,15 @@ public abstract class GameApplication implements IGame, Runnable {
     /**
      * Returns the current displayed screen
      */
-    public Screen getCurrentFrame(){
+    public Screen getCurrentFrame() {
         return currentFrame;
     }
 
     /**
      * Returns the game name
      */
-    public String getGameName(){
-        if (gameName == null){
+    public String getGameName() {
+        if (gameName == null) {
             return "Game";
         }
         return gameName;
@@ -532,8 +563,8 @@ public abstract class GameApplication implements IGame, Runnable {
     /**
      * Returns the game version
      */
-    public String getGameVersion(){
-        if (gameVersion == null){
+    public String getGameVersion() {
+        if (gameVersion == null) {
             return "InfDev";
         }
         return gameVersion;

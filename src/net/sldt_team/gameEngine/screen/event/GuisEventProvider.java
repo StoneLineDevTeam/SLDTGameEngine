@@ -8,18 +8,22 @@ import net.sldt_team.gameEngine.gui.Gui;
 public interface GuisEventProvider {
 
     /**
-     * Guis events (called when gui displayed and cleared)
-     * 1 - Gui displayed
-     * 2 - Gui cleared
+     * Called when a Gui is displayed
      */
     public void onGuiDisplayed(Gui gui);
+
+    /**
+     * Called when the current displayed gui is cleared (removed)
+     */
     public void onGuiCleared();
 
     /**
-     * Guis events (called when can gui displayed and can gui cleared)
-     * 1 - Can gui displayed
-     * 2 - Can gui cleared
+     * Can gui be displayed
      */
     public boolean canGuiDisplay(Gui gui);
+
+    /**
+     * Can gui be cleared (removed)
+     */
     public boolean canGuiClear(Gui gui);
 }

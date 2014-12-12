@@ -7,33 +7,36 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * @exclude
+ */
 public class OutputStreamToLogger extends ByteArrayOutputStream {
 
-       private String lineSeparator;
+    private String lineSeparator;
 
-        private Logger logger;
-        private Level level;
+    private Logger logger;
+    private Level level;
 
-        public OutputStreamToLogger(@NotNull Logger logger, @NotNull Level level) {
-            super();
-            this.logger = logger;
-            this.level = level;
-            lineSeparator = System.getProperty("line.separator");
-        }
+    public OutputStreamToLogger(@NotNull Logger logger, @NotNull Level level) {
+        super();
+        this.logger = logger;
+        this.level = level;
+        lineSeparator = System.getProperty("line.separator");
+    }
 
-        public void flush() throws IOException {
-            String record;
-            synchronized(this) {
-                super.flush();
-                record = this.toString();
-                super.reset();
+    public void flush() throws IOException {
+        String record;
+        synchronized (this) {
+            super.flush();
+            record = this.toString();
+            super.reset();
 
-                if (record.length() == 0 || record.equals(lineSeparator)) {
-                    // avoid empty records
-                    return;
-                }
-
-                logger.log(level, record);
+            if (record.length() == 0 || record.equals(lineSeparator)) {
+                // avoid empty records
+                return;
             }
+
+            logger.log(level, record);
         }
+    }
 }

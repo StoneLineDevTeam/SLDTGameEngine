@@ -12,13 +12,18 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Random;
 
 public class ParticleManager {
+    private Particle[] particlesMap;
 
-    public Particle[] particlesMap;
-
+    /**
+     * @exclude
+     */
     public ParticleManager() {
         particlesMap = new Particle[256];
     }
 
+    /**
+     * @exclude
+     */
     public void doRender(RenderEngine renderEngine, FontRenderer fontRenderer) {
         for (Particle p : particlesMap) {
             if (p != null) {
@@ -40,13 +45,14 @@ public class ParticleManager {
 
     /**
      * Spawns a particle, but be sure to complete every parameters...
-     * @param name The particle name
-     * @param xMin Min spawn area X
-     * @param yMin Min spawn area Y
-     * @param xMax Max spawn area X
-     * @param yMax Max spawn area Y
+     *
+     * @param name          The particle name
+     * @param xMin          Min spawn area X
+     * @param yMin          Min spawn area Y
+     * @param xMax          Max spawn area X
+     * @param yMax          Max spawn area Y
      * @param particleCount The number of particles to spawn
-     * @param obj This object is an extra parameter used by certain particles
+     * @param obj           This object is an extra parameter used by certain particles
      */
     public void spawnParticle(@NotNull String name, float xMin, float yMin, float xMax, float yMax, int particleCount, Object obj) {
         for (int i = 0; i < particleCount; i++) {
@@ -61,7 +67,7 @@ public class ParticleManager {
                     if (!isParticleExistAtCoords(testX, testY)) {
                         try {
                             Class<? extends Particle> theClass = ParticleRegistry.findDeclaredParticle(name);
-                            if (theClass != null){
+                            if (theClass != null) {
                                 Constructor conststructor = theClass.getDeclaredConstructor(Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE, Integer.TYPE, Object.class);
                                 Particle p = (Particle) conststructor.newInstance(testX, testY, size, size, lifeTime, obj);
                                 particlesMap[j] = p;
@@ -82,6 +88,9 @@ public class ParticleManager {
         }
     }
 
+    /**
+     * @exclude
+     */
     public void doUpdate() {
         for (int i = 0; i < 256; i++) {
             Particle p = particlesMap[i];
