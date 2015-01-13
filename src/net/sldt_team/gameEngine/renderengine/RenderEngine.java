@@ -2,12 +2,12 @@ package net.sldt_team.gameEngine.renderengine;
 
 import static org.lwjgl.opengl.GL11.*;
 
-import net.sldt_team.gameEngine.ExceptionHandler;
+import net.sldt_team.gameEngine.GameApplication;
+import net.sldt_team.gameEngine.IExceptionHandler;
 import net.sldt_team.gameEngine.exception.GameException;
 import net.sldt_team.gameEngine.renderengine.animation.Animation;
-import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
-import net.sldt_team.gameEngine.renderengine.helper.PNGHelper;
-import net.sldt_team.gameEngine.renderengine.helper.SideHelper;
+import net.sldt_team.gameEngine.renderengine.decoders.ITextureDecoder;
+import net.sldt_team.gameEngine.renderengine.helper.*;
 import net.sldt_team.gameEngine.util.FileUtilities;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.GL12;
@@ -34,8 +34,9 @@ public class RenderEngine {
     private float rotation;
     private float scale;
 
-    private float rotationPointX;
-    private float rotationPointY;
+    private float rotationScalePointX;
+    private float rotationScalePointY;
+    private boolean rotateScaleInMiddle = true;
 
     private final Texture gradientTop;
     private final Texture gradientBottom;
@@ -43,10 +44,15 @@ public class RenderEngine {
     private final Texture gradientRight;
     private final Texture missingTex;
 
+    private boolean scissoringEnabled;
+    private boolean blendingEnabled;
+
+    private boolean translationMatrixAdded;
+
     /**
      * @exclude
      */
-    protected ExceptionHandler exceptionHandler;
+    protected IExceptionHandler exceptionHandler;
 
     /**
      * @exclude
@@ -58,7 +64,7 @@ public class RenderEngine {
     /**
      * @exclude
      */
-    public RenderEngine(ExceptionHandler handler, AssetManager assets, Logger log) {
+    public RenderEngine(IExceptionHandler handler, AssetManager assets, Logger log) {
         textureMap = new HashMap<String, Texture>();
         animationMap = new HashMap<String, Animation>();
         exceptionHandler = handler;
@@ -71,20 +77,38 @@ public class RenderEngine {
         gradientLeft = loadTexture("renderEngine/gradients/left");
         gradientRight = loadTexture("renderEngine/gradients/right");
         missingTex = loadTexture("renderEngine/missingTex");
+
+        gradientTop.setTextureEnvironment(EnvironmentHelper.RGBA_COLOR_REPLACEMENT);
+        gradientBottom.setTextureEnvironment(EnvironmentHelper.RGBA_COLOR_REPLACEMENT);
+        gradientLeft.setTextureEnvironment(EnvironmentHelper.RGBA_COLOR_REPLACEMENT);
+        gradientRight.setTextureEnvironment(EnvironmentHelper.RGBA_COLOR_REPLACEMENT);
+
+        scissoringEnabled = false;
     }
 
     /**
-     * @exclude
+     * Returns a ByteBuffer of an input texture stream
      */
-    public ByteBuffer mountTexture(InputStream stream) throws IOException {
-        PNGHelper decoder = new PNGHelper(stream);
-        ByteBuffer buf = ByteBuffer.allocateDirect(4 * decoder.getWidth() * decoder.getHeight());
-        decoder.decode(buf, decoder.getWidth() * 4, PNGHelper.Format.RGBA);
-        buf.flip();
-        currentTexWidth = decoder.getWidth();
-        currentTexHeight = decoder.getHeight();
+    public ByteBuffer mountTexture(String fileExtension, InputStream stream) throws IOException {
+        ITextureDecoder textureDecoder = TextureFormatHelper.instance.getTextureDecoderForFormat(fileExtension);
+        if (textureDecoder == null || stream == null){
+            try {
+                throw new LWJGLException("RENDER_ENGINE_FATAL_ERROR : DECODER_FAILURE_NULL");
+            } catch (LWJGLException e) {
+                exceptionHandler.handleException(new GameException(e));
+            }
+            return null;
+        }
+        textureDecoder.initialize(stream);
+        ByteBuffer buffer = textureDecoder.getTextureData();
+        currentTexWidth = textureDecoder.getTextureWidth();
+        currentTexHeight = textureDecoder.getTextureHeight();
+        textureDecoder.clearBuffers();
+        if (buffer == null){
+            GameApplication.log.severe("RENDER ENGINE : Decoder " + textureDecoder.getDecoderName() + " has failed reading stream " + stream + " !");
+        }
         stream.close();
-        return buf;
+        return buffer;
     }
 
     /**
@@ -98,9 +122,17 @@ public class RenderEngine {
     /**
      * Sets the rotation points
      */
-    public void setRotationPoints(float f, float f1){
-        rotationPointX = f;
-        rotationPointY = f1;
+    public void setRotationScalePoints(float f, float f1) {
+        rotationScalePointX = f;
+        rotationScalePointY = f1;
+        rotateScaleInMiddle = false;
+    }
+
+    /**
+     * Enables middle rotations
+     */
+    public void enableMiddleRotationScale() {
+        rotateScaleInMiddle = true;
     }
 
     /**
@@ -112,11 +144,49 @@ public class RenderEngine {
     }
 
     /**
-     * Gets texture id from texture name (You don't need to specify .png, the engine knows it)
+     * Adds the scissor rect to the screen (args: x-coord, y-coord, width, height)
+     */
+    public void addScissorRect(int x, int y, int width, int height){
+        if (!scissoringEnabled) {
+            glEnable(GL_SCISSOR_TEST);
+        }
+        glScissor(x, y, width, height);
+    }
+
+    /**
+     * Removes the scissor rect
+     */
+    public void removeScissorRect(){
+        if (scissoringEnabled){
+            glDisable(GL_SCISSOR_TEST);
+        }
+    }
+
+    /**
+     * Disables the blending
+     */
+    public void disableBlending() {
+        if (blendingEnabled) {
+            glDisable(GL_BLEND);
+            blendingEnabled = false;
+        }
+    }
+
+    /**
+     * Enables the blending
+     */
+    public void enableBlending() {
+        if (!blendingEnabled) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+    }
+
+    /**
+     * Gets texture from texture path (You don't need to specify .png, the engine knows it)
      */
     public Texture loadTexture(String path) {
         String texPath = path + ".png";
-        int id;
         try {
             if (textureMap.get(texPath) != null) {
                 return textureMap.get(texPath);
@@ -134,7 +204,7 @@ public class RenderEngine {
     }
 
     /**
-     * Loads an format from the given path (Don't need to specify any file extension, the engine knows it)
+     * Loads an animation from the given path (Don't need to specify any file extension, the engine knows it)
      */
     public Animation loadAnimation(String path) {
         if (animationMap.containsKey(path)) {
@@ -157,18 +227,18 @@ public class RenderEngine {
             } else {
                 if (FileUtilities.getFileExtension(path) != null) {
                     String extension = FileUtilities.getFileExtension(path).toUpperCase();
-                    if (!path.exists() || !extension.equals("PNG")) {
+                    if (!path.exists() || !TextureFormatHelper.instance.canTextureFileBeRead(path)) {
                         flag = true;
                     }
                     if (!flag) {
                         FileInputStream stream = new FileInputStream(path);
-                        texture = mountTexture(stream);
+                        texture = mountTexture(extension, stream);
                     }
                 } else {
                     flag = true;
                 }
             }
-            if (flag) {
+            if (flag || texture == null) {
                 logger.warning("RENDER ENGINE : Unable to mount texture -> \"" + name + "\"");
                 return;
             }
@@ -217,7 +287,7 @@ public class RenderEngine {
      * Binds a texture (args : the texture id from loadTexture int)
      */
     public void bindTexture(Texture texture) {
-        if (texture == null){
+        if (texture == null) {
             bindMissingTexture();
             return;
         }
@@ -230,8 +300,47 @@ public class RenderEngine {
     /**
      * Binds missing texture (This is for MissingTexture lovers #MISSING_TEXTURE#) !!
      */
-    public void bindMissingTexture(){
+    public void bindMissingTexture() {
         bindTexture(missingTex);
+    }
+
+    private void addRotationScale(float x, float y, float width, float height) {
+        glPushMatrix();
+        if (rotateScaleInMiddle) {
+            glTranslatef(((x + width) / 2), ((y + height) / 2), 0);
+        } else {
+            glTranslatef((x + rotationScalePointX), (y + rotationScalePointY), 0);
+        }
+
+        if (isRotated)
+            glRotatef(rotation, 0, 0, 1);
+        if (isScaled)
+            glScalef(scale, scale, 1);
+
+        if (rotateScaleInMiddle){
+            glTranslatef(-((x + width) / 2), -((y + height) / 2), 0);
+        } else {
+            glTranslatef(-(x + rotationScalePointX), -(y + rotationScalePointY), 0);
+        }
+    }
+    private void resetRotationScale(){
+        glPopMatrix();
+        isRotated = false;
+        isScaled = false;
+    }
+
+    /**
+     * Adds a translation matrix
+     */
+    public void addTranslationMatrix(float x, float y){
+        glPushMatrix();
+        glTranslatef(x, y, 0);
+        translationMatrixAdded = true;
+    }
+
+    private void removeTranslationMatrix(){
+        glPopMatrix();
+        translationMatrixAdded = false;
     }
 
     /**
@@ -245,16 +354,20 @@ public class RenderEngine {
         float texH = texY + (v1 / currentBoundTexture.textureHeight);
 
         if (isRotated || isScaled) {
-            glPushMatrix();
-            glTranslatef(((x + width) / rotationPointX), ((y + height) / rotationPointY), 0);
-            if (isRotated)
-                glRotatef(rotation, 0, 0, 1);
-            if (isScaled)
-                glScalef(scale, scale, 1);
-            glTranslatef(-((x + width) / rotationPointX), -((y + height) / rotationPointY), 0);
+            x = 0;
+            y = 0;
+            addRotationScale(x, y, width, height);
         }
 
         if (currentBoundTexture.hasColorBeenOverwritten && currentBoundTexture.textureOverwriteColor != null) {
+            switch (currentBoundTexture.textureEnv) {
+                case RGB_COLOR_REPLACEMENT:
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                    break;
+                case RGBA_COLOR_REPLACEMENT:
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+                    break;
+            }
             glColor4f(currentBoundTexture.textureOverwriteColor.getRed(), currentBoundTexture.textureOverwriteColor.getGreen(), currentBoundTexture.textureOverwriteColor.getBlue(), currentBoundTexture.textureOverwriteColor.getAlpha());
         }
         glBegin(GL_QUADS);
@@ -274,11 +387,16 @@ public class RenderEngine {
         glEnd();
         if (currentBoundTexture.hasColorBeenOverwritten) {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            if (currentBoundTexture.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            }
         }
         if (isRotated || isScaled) {
-            glPopMatrix();
-            isRotated = false;
-            isScaled = false;
+            resetRotationScale();
+        }
+
+        if (translationMatrixAdded) {
+            removeTranslationMatrix();
         }
     }
 
@@ -287,18 +405,23 @@ public class RenderEngine {
      */
     public void renderQuad(float x, float y, float width, float height) {
         if (isRotated || isScaled) {
-            glPushMatrix();
-            glTranslatef(((x + width) / rotationPointX), ((y + height) / rotationPointY), 0);
-            if (isRotated)
-                glRotatef(rotation, 0, 0, 1);
-            if (isScaled)
-                glScalef(scale, scale, 1);
-            glTranslatef(-((x + width) / rotationPointX), -((y + height) / rotationPointY), 0);
+            x = 0;
+            y = 0;
+            addRotationScale(x, y, width, height);
         }
+
         if (currentColor != null && usingColor) {
             glDisable(GL_TEXTURE_2D);
             glColor4f(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), currentColor.getAlpha());
         } else if (currentBoundTexture.hasColorBeenOverwritten && currentBoundTexture.textureOverwriteColor != null) {
+            switch (currentBoundTexture.textureEnv) {
+                case RGB_COLOR_REPLACEMENT:
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                    break;
+                case RGBA_COLOR_REPLACEMENT:
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+                    break;
+            }
             glColor4f(currentBoundTexture.textureOverwriteColor.getRed(), currentBoundTexture.textureOverwriteColor.getGreen(), currentBoundTexture.textureOverwriteColor.getBlue(), currentBoundTexture.textureOverwriteColor.getAlpha());
         }
         glBegin(GL_QUADS);
@@ -321,11 +444,16 @@ public class RenderEngine {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         } else if (currentBoundTexture.hasColorBeenOverwritten) {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            if (currentBoundTexture.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            }
         }
         if (isRotated || isScaled) {
-            glPopMatrix();
-            isRotated = false;
-            isScaled = false;
+            resetRotationScale();
+        }
+
+        if (translationMatrixAdded) {
+            removeTranslationMatrix();
         }
     }
 
@@ -344,18 +472,18 @@ public class RenderEngine {
      */
     public void renderUnfilledCircle(float x, float y, float radius) {
         glPushMatrix();
-        if (isRotated || isScaled) {
-            glTranslatef(((x + radius) / rotationPointX), ((y + radius) / rotationPointY), 0);
-            if (isRotated)
-                glRotatef(rotation, 0, 0, 1);
-            if (isScaled)
-                glScalef(scale, scale, 1);
-            glTranslatef(-((x + radius) / 2), -((y + radius) / 2), 0);
-        }
         if (currentColor != null && usingColor) {
             glDisable(GL_TEXTURE_2D);
             glColor4f(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), currentColor.getAlpha());
         } else if (currentBoundTexture.hasColorBeenOverwritten && currentBoundTexture.textureOverwriteColor != null) {
+            switch (currentBoundTexture.textureEnv) {
+                case RGB_COLOR_REPLACEMENT:
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                    break;
+                case RGBA_COLOR_REPLACEMENT:
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+                    break;
+            }
             glColor4f(currentBoundTexture.textureOverwriteColor.getRed(), currentBoundTexture.textureOverwriteColor.getGreen(), currentBoundTexture.textureOverwriteColor.getBlue(), currentBoundTexture.textureOverwriteColor.getAlpha());
         }
         glTranslatef(x, y, 0);
@@ -372,10 +500,9 @@ public class RenderEngine {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         } else if (currentBoundTexture.hasColorBeenOverwritten) {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        }
-        if (isRotated || isScaled) {
-            isRotated = false;
-            isScaled = false;
+            if (currentBoundTexture.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            }
         }
         glPopMatrix();
     }
@@ -394,18 +521,23 @@ public class RenderEngine {
      */
     public void renderTriangle(float x, float y, float width, float height, float factor, boolean isEqual) {
         if (isRotated || isScaled) {
-            glPushMatrix();
-            glTranslatef(((x + width) / rotationPointX), ((y + height) / rotationPointY), 0);
-            if (isRotated)
-                glRotatef(rotation, 0, 0, 1);
-            if (isScaled)
-                glScalef(scale, scale, 1);
-            glTranslatef(-((x + width) / rotationPointX), -((y + height) / rotationPointY), 0);
+            x = 0;
+            y = 0;
+            addRotationScale(x, y, width, height);
         }
+
         if (currentColor != null && usingColor) {
             glDisable(GL_TEXTURE_2D);
             glColor4f(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), currentColor.getAlpha());
         } else if (currentBoundTexture.hasColorBeenOverwritten && currentBoundTexture.textureOverwriteColor != null) {
+            switch (currentBoundTexture.textureEnv) {
+                case RGB_COLOR_REPLACEMENT:
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                    break;
+                case RGBA_COLOR_REPLACEMENT:
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+                    break;
+            }
             glColor4f(currentBoundTexture.textureOverwriteColor.getRed(), currentBoundTexture.textureOverwriteColor.getGreen(), currentBoundTexture.textureOverwriteColor.getBlue(), currentBoundTexture.textureOverwriteColor.getAlpha());
         }
         glBegin(GL_TRIANGLES);
@@ -429,11 +561,16 @@ public class RenderEngine {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         } else if (currentBoundTexture.hasColorBeenOverwritten) {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            if (currentBoundTexture.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            }
         }
         if (isRotated || isScaled) {
-            glPopMatrix();
-            isRotated = false;
-            isScaled = false;
+            resetRotationScale();
+        }
+
+        if (translationMatrixAdded) {
+            removeTranslationMatrix();
         }
     }
 
@@ -448,9 +585,9 @@ public class RenderEngine {
     /**
      * Renders a gradient quad object at screen (args :  x-coord, y-coord, width, height, gradient's map color, the directions of the gradient map)
      */
-    public void renderGradientQuad(float x, float y, float width, float height, ColorHelper color, SideHelper... sides){
-        for (SideHelper side : sides){
-            switch(side){
+    public void renderGradientQuad(float x, float y, float width, float height, ColorHelper color, SideHelper... sides) {
+        for (SideHelper side : sides) {
+            switch (side) {
                 case TOP:
                     gradientTop.setOverwriteColor(color);
                     bindTexture(gradientTop);

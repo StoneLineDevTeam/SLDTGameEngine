@@ -1,6 +1,7 @@
 package net.sldt_team.gameEngine.renderengine;
 
 import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
+import net.sldt_team.gameEngine.renderengine.helper.EnvironmentHelper;
 
 public class Texture {
 
@@ -30,6 +31,11 @@ public class Texture {
     protected boolean hasColorBeenOverwritten;
 
     /**
+     * Texture environment (RGB or RGBA) for color replacement
+     */
+    protected EnvironmentHelper textureEnv;
+
+    /**
      * Creates a texture file, used by RenderEngine
      * @param a Texture ID in graphics card
      * @param w Texture width
@@ -39,6 +45,8 @@ public class Texture {
         openGLIndex = a;
         textureWidth = w;
         textureHeight = h;
+
+        textureEnv = EnvironmentHelper.RGB_COLOR_REPLACEMENT;
     }
 
     /**
@@ -52,5 +60,12 @@ public class Texture {
         }
         hasColorBeenOverwritten = true;
         textureOverwriteColor = color;
+    }
+
+    /**
+     * Sets color replacement environment
+     */
+    public void setTextureEnvironment(EnvironmentHelper helper){
+        textureEnv = helper;
     }
 }

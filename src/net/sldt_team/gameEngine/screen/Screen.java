@@ -1,16 +1,16 @@
 package net.sldt_team.gameEngine.screen;
 
 import net.sldt_team.gameEngine.GameApplication;
-import net.sldt_team.gameEngine.components.ScreenComponent;
-import net.sldt_team.gameEngine.components.QuitButton;
+import net.sldt_team.gameEngine.screen.components.IScreenComponent;
+import net.sldt_team.gameEngine.screen.components.QuitButton;
 import net.sldt_team.gameEngine.ext.Translator;
 import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
 import net.sldt_team.gameEngine.renderengine.Texture;
-import net.sldt_team.gameEngine.screen.event.ComponentsEventProvider;
-import net.sldt_team.gameEngine.screen.event.MessagesEventProvider;
-import net.sldt_team.gameEngine.screen.event.RendersEventProvider;
+import net.sldt_team.gameEngine.screen.event.IComponentsEventProvider;
+import net.sldt_team.gameEngine.screen.event.IMessagesEventProvider;
+import net.sldt_team.gameEngine.screen.event.IRendersEventProvider;
 import net.sldt_team.gameEngine.screen.message.Message;
 import net.sldt_team.gameEngine.screen.message.MessageType;
 import org.lwjgl.input.Mouse;
@@ -26,7 +26,7 @@ public abstract class Screen {
     protected GameApplication theGame;
 
     private Texture backgroundImage;
-    private List<ScreenComponent> screenComponents;
+    private List<IScreenComponent> screenComponents;
     private final ArrayList<Runnable> messageQueue = new ArrayList<Runnable>();
 
     /**
@@ -42,15 +42,15 @@ public abstract class Screen {
     private MessageDisplay displayedMessage = null;
 
     public Screen() {
-        screenComponents = new ArrayList<ScreenComponent>();
+        screenComponents = new ArrayList<IScreenComponent>();
     }
 
     /**
      * Adds a component to the screen
      */
-    public void addComponentToScreen(final ScreenComponent component) {
-        if (this instanceof ComponentsEventProvider) {
-            ComponentsEventProvider provider = (ComponentsEventProvider) this;
+    public void addComponentToScreen(final IScreenComponent component) {
+        if (this instanceof IComponentsEventProvider) {
+            IComponentsEventProvider provider = (IComponentsEventProvider) this;
             if (!provider.canComponentAdd(component)) {
                 return;
             }
@@ -60,8 +60,8 @@ public abstract class Screen {
             public void run() {
                 component.onComponentAdd();
                 screenComponents.add(component);
-                if (Screen.this instanceof ComponentsEventProvider) {
-                    ComponentsEventProvider provider = (ComponentsEventProvider) Screen.this;
+                if (Screen.this instanceof IComponentsEventProvider) {
+                    IComponentsEventProvider provider = (IComponentsEventProvider) Screen.this;
                     provider.onComponentAdded(component);
                 }
             }
@@ -79,9 +79,9 @@ public abstract class Screen {
     /**
      * Removes a component from the screen
      */
-    public void removeComponentFromScreen(final ScreenComponent component) {
-        if (this instanceof ComponentsEventProvider) {
-            ComponentsEventProvider provider = (ComponentsEventProvider) this;
+    public void removeComponentFromScreen(final IScreenComponent component) {
+        if (this instanceof IComponentsEventProvider) {
+            IComponentsEventProvider provider = (IComponentsEventProvider) this;
             if (!provider.canComponentRemove(component)) {
                 return;
             }
@@ -91,8 +91,8 @@ public abstract class Screen {
             public void run() {
                 component.onComponentRemove();
                 screenComponents.remove(component);
-                if (Screen.this instanceof ComponentsEventProvider) {
-                    ComponentsEventProvider provider = (ComponentsEventProvider) Screen.this;
+                if (Screen.this instanceof IComponentsEventProvider) {
+                    IComponentsEventProvider provider = (IComponentsEventProvider) Screen.this;
                     provider.onComponentRemoved();
                 }
             }
@@ -112,8 +112,8 @@ public abstract class Screen {
      * Displays a message at the middle of the screen
      */
     public void displayMessage(Message message) {
-        if (this instanceof MessagesEventProvider) {
-            MessagesEventProvider provider = (MessagesEventProvider) this;
+        if (this instanceof IMessagesEventProvider) {
+            IMessagesEventProvider provider = (IMessagesEventProvider) this;
             if (!provider.canMessageDialogDisplay(message)) {
                 return;
             }
@@ -121,8 +121,8 @@ public abstract class Screen {
 
         displayedMessage = new MessageDisplay(message, this, theGame.renderEngine);
 
-        if (this instanceof MessagesEventProvider) {
-            MessagesEventProvider provider = (MessagesEventProvider) this;
+        if (this instanceof IMessagesEventProvider) {
+            IMessagesEventProvider provider = (IMessagesEventProvider) this;
             provider.onMessageDialogDisplayed(message);
         }
     }
@@ -131,8 +131,8 @@ public abstract class Screen {
      * Removes the current displayed message
      */
     public void clearDesplayedMessage() {
-        if (this instanceof MessagesEventProvider) {
-            MessagesEventProvider provider = (MessagesEventProvider) this;
+        if (this instanceof IMessagesEventProvider) {
+            IMessagesEventProvider provider = (IMessagesEventProvider) this;
             if (!provider.canMessageDialogClear(displayedMessage.theMessage)) {
                 return;
             }
@@ -140,8 +140,8 @@ public abstract class Screen {
 
         displayedMessage = null;
 
-        if (this instanceof MessagesEventProvider) {
-            MessagesEventProvider provider = (MessagesEventProvider) this;
+        if (this instanceof IMessagesEventProvider) {
+            IMessagesEventProvider provider = (IMessagesEventProvider) this;
             provider.onMessageDialogCleared();
         }
     }
@@ -178,7 +178,7 @@ public abstract class Screen {
     public void refreshScreen() {
         Runnable r = new Runnable() {
             public void run() {
-                for (ScreenComponent component : screenComponents) {
+                for (IScreenComponent component : screenComponents) {
                     component.onComponentRemove();
                 }
                 screenComponents.clear();
@@ -195,7 +195,7 @@ public abstract class Screen {
     public void onExit() {
         Runnable r = new Runnable() {
             public void run() {
-                for (ScreenComponent component : screenComponents) {
+                for (IScreenComponent component : screenComponents) {
                     component.onComponentRemove();
                 }
                 screenComponents.clear();
@@ -217,7 +217,7 @@ public abstract class Screen {
         }
 
         if (areControlsEnabled) {
-            for (ScreenComponent g : screenComponents) {
+            for (IScreenComponent g : screenComponents) {
                 g.updateComponent();
             }
         }
@@ -234,8 +234,8 @@ public abstract class Screen {
      * @exclude
      */
     public void drawWindow(RenderEngine renderEngine, FontRenderer fontRenderer) {
-        if (this instanceof RendersEventProvider) {
-            RendersEventProvider provider = (RendersEventProvider) this;
+        if (this instanceof IRendersEventProvider) {
+            IRendersEventProvider provider = (IRendersEventProvider) this;
             provider.preRenderScreen(renderEngine, fontRenderer);
         } else {
             renderEngine.bindTexture(backgroundImage);
@@ -244,7 +244,7 @@ public abstract class Screen {
 
         renderScreen(renderEngine, fontRenderer);
 
-        for (ScreenComponent g : screenComponents) {
+        for (IScreenComponent g : screenComponents) {
             if (g != null)
                 g.renderComponent(renderEngine, fontRenderer);
         }
@@ -265,8 +265,8 @@ public abstract class Screen {
             displayedMessage.renderMessage(renderEngine, fontRenderer);
         }
 
-        if (this instanceof RendersEventProvider) {
-            RendersEventProvider provider = (RendersEventProvider) this;
+        if (this instanceof IRendersEventProvider) {
+            IRendersEventProvider provider = (IRendersEventProvider) this;
             provider.postRenderScreen(renderEngine, fontRenderer);
         }
     }
@@ -295,5 +295,5 @@ public abstract class Screen {
      * Used by components as an event system (example : when button get clicked)
      * WARNING : Engine does not automaticaly call this method, a game component must import this method
      */
-    public abstract void actionPerformed(int compID, ScreenComponent component);
+    public abstract void actionPerformed(int compID, IScreenComponent component);
 }

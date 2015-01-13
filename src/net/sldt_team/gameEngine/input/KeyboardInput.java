@@ -1,18 +1,18 @@
 package net.sldt_team.gameEngine.input;
 
-import net.sldt_team.gameEngine.input.keyboard.KeyboardHandler;
+import net.sldt_team.gameEngine.input.keyboard.IKeyboardHandler;
 import org.lwjgl.input.Keyboard;
 
 public class KeyboardInput {
 
-    private KeyboardHandler theHandler;
+    private IKeyboardHandler theHandler;
 
     /**
      * Creates a keyboard input manager
      *
      * @param handler The handler to associate
      */
-    public KeyboardInput(KeyboardHandler handler) {
+    public KeyboardInput(IKeyboardHandler handler) {
         theHandler = handler;
     }
 
@@ -39,7 +39,7 @@ public class KeyboardInput {
     /**
      * Returns associated Handler
      */
-    public KeyboardHandler getHandler() {
+    public IKeyboardHandler getHandler() {
         return theHandler;
     }
 }

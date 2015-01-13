@@ -25,20 +25,6 @@ public class MathUtilities {
     }
 
     /**
-     * Returns a float corresponding of screen's center X supporting an object width
-     */
-    public static float getCenteredObjectX(float objectWidth) {
-        return (GameApplication.getScreenWidth() / 2) - (objectWidth / 2);
-    }
-
-    /**
-     * Returns a float corresponding of screen's center Y supporting an object height
-     */
-    public static float getCenteredObjectY(float objectHeight) {
-        return (GameApplication.getScreenHeight() / 2) - (objectHeight / 2);
-    }
-
-    /**
      * Returns if numToCheck is first or no
      */
     public static boolean isNumberFirst(int numToCheck){

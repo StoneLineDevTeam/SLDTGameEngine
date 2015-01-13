@@ -1,11 +1,11 @@
 package net.sldt_team.gameEngine.exception.code;
 
-import net.sldt_team.gameEngine.exception.GameError;
+import net.sldt_team.gameEngine.exception.IGameError;
 
 /**
  * @exclude
  */
-public class ErrorCode008 implements GameError {
+public class ErrorCode008 implements IGameError {
 
     public String getDescription() {
         return "ASSET_FORMAT_ERROR";

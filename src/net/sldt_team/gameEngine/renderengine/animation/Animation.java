@@ -3,6 +3,7 @@ package net.sldt_team.gameEngine.renderengine.animation;
 import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
 import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.renderengine.helper.EnvironmentHelper;
 import org.lwjgl.opengl.GL11;
 
 public class Animation {
@@ -16,6 +17,8 @@ public class Animation {
 
     private int ticks;
 
+    private EnvironmentHelper textureEnv;
+
     /**
      * Creates a new animation
      *
@@ -24,11 +27,12 @@ public class Animation {
      * @param frames The different frames of this animation
      * @param uv     Is this animation using UV texture's coordinates
      */
-    public Animation(int i, EnumAnimationType type, TextureFrame[] frames, boolean uv) {
+    public Animation(int i, EnumAnimationType type, TextureFrame[] frames, boolean uv, EnvironmentHelper env) {
         interval = i;
         animationType = type;
         textures = frames;
         isUsingUV = uv;
+        textureEnv = env;
     }
 
     /**
@@ -122,15 +126,21 @@ public class Animation {
      * Renders this animation (args : Instance of RenderEngine, X-Coord, Y-Coord, Width, Height)
      */
     public void render(RenderEngine renderEngine, float x, float y, float width, float height) {
+        renderEngine.addTranslationMatrix(x, y);
+
         TextureFrame frame = getCurrentFrame();
         Texture i = renderEngine.loadTexture(frame.path);
         if (i == null) {
             GameApplication.log.warning("Unable to render format : 'Unexpected Error Calling renderEngine.loadTexture' !");
             return;
         }
+        i.setOverwriteColor(frame.color);
+        i.setTextureEnvironment(textureEnv);
         renderEngine.bindTexture(i);
+
+        renderEngine.enableMiddleRotationScale();
         renderEngine.setScaleLevel(frame.scale);
-        GL11.glColor4f(frame.color.getRed(), frame.color.getGreen(), frame.color.getBlue(), frame.color.getAlpha());
+
         if (isUsingUV) {
             renderEngine.renderTexturedQuadWithTextureCoords(x, y, width, height, frame.uCoord, frame.vCoord, frame.u1Coord, frame.v1Coord);
         } else {

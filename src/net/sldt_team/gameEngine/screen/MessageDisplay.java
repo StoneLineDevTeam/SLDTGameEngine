@@ -7,7 +7,7 @@ import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
 import net.sldt_team.gameEngine.renderengine.Texture;
 import net.sldt_team.gameEngine.screen.message.Message;
-import net.sldt_team.gameEngine.util.MathUtilities;
+import net.sldt_team.gameEngine.util.GuiUtilities;
 
 /**
  * @exclude
@@ -28,11 +28,11 @@ public class MessageDisplay {
 
         Texture i = renderEngine.loadTexture("message/dialog");
         renderEngine.bindTexture(i);
-        renderEngine.renderQuad(MathUtilities.getCenteredObjectX(512), MathUtilities.getCenteredObjectY(256), 512, 256);
+        renderEngine.renderQuad(GuiUtilities.getCenteredObjectX(512), GuiUtilities.getCenteredObjectY(256), 512, 256);
 
         fontRenderer.setRenderingSize(5);
         fontRenderer.setRenderingColor(ColorHelper.WHITE);
-        fontRenderer.renderString(theMessage.getMessageTitle(), MathUtilities.getCenteredObjectX(512) + 5, MathUtilities.getCenteredObjectY(256));
+        fontRenderer.renderString(theMessage.getMessageTitle(), GuiUtilities.getCenteredObjectX(512) + 5, GuiUtilities.getCenteredObjectY(256));
 
         for (GuiButton button : theMessage.getButtons()) {
             button.render(renderEngine, fontRenderer);
@@ -42,13 +42,13 @@ public class MessageDisplay {
         for (String s : theMessage.getContent()) {
             fontRenderer.setRenderingSize(4);
             fontRenderer.setRenderingColor(ColorHelper.BLACK);
-            fontRenderer.renderString(s, MathUtilities.getCenteredObjectX(512) + 100, MathUtilities.getCenteredObjectY(256) + (50 + spacement));
+            fontRenderer.renderString(s, GuiUtilities.getCenteredObjectX(512) + 100, GuiUtilities.getCenteredObjectY(256) + (50 + spacement));
             spacement += 24;
         }
 
         Texture j = renderEngine.loadTexture(theMessage.getTexturePath());
         renderEngine.bindTexture(j);
-        renderEngine.renderQuad(MathUtilities.getCenteredObjectX(512) + 15, MathUtilities.getCenteredObjectY(256) + 50, 64, 64);
+        renderEngine.renderQuad(GuiUtilities.getCenteredObjectX(512) + 15, GuiUtilities.getCenteredObjectY(256) + 50, 64, 64);
     }
 
     protected void updateMessage() {

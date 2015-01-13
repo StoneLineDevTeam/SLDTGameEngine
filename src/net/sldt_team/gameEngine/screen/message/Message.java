@@ -5,7 +5,7 @@ import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.gui.GuiButton;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
 import net.sldt_team.gameEngine.screen.Screen;
-import net.sldt_team.gameEngine.util.MathUtilities;
+import net.sldt_team.gameEngine.util.GuiUtilities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,8 +70,8 @@ public class Message {
      */
     public void init(RenderEngine renderEngine, final Screen screen) {
         if (isConfirmation) {
-            GuiButton yes = new GuiButton("Yes", 128, 32, renderEngine.loadTexture("message/button"), (int) MathUtilities.getCenteredObjectX(512) + 5, (int) MathUtilities.getCenteredObjectY(256) + 200, 150, 50);
-            GuiButton no = new GuiButton("No", 128, 32, renderEngine.loadTexture("message/button"), (int) MathUtilities.getCenteredObjectX(512) + 160, (int) MathUtilities.getCenteredObjectY(256) + 200, 150, 50);
+            GuiButton yes = new GuiButton("Yes", 128, 32, renderEngine.loadTexture("message/button"), (int) GuiUtilities.getCenteredObjectX(512) + 5, (int) GuiUtilities.getCenteredObjectY(256) + 200, 150, 50);
+            GuiButton no = new GuiButton("No", 128, 32, renderEngine.loadTexture("message/button"), (int) GuiUtilities.getCenteredObjectX(512) + 160, (int) GuiUtilities.getCenteredObjectY(256) + 200, 150, 50);
             no.setAction(new Runnable() {
                 public void run() {
                     screen.clearDesplayedMessage();
@@ -90,7 +90,7 @@ public class Message {
             buttons.add(no);
             return;
         }
-        GuiButton ok = new GuiButton("Ok", 128, 32, renderEngine.loadTexture("message/button"), (int) MathUtilities.getCenteredObjectX(512) + 5, (int) MathUtilities.getCenteredObjectY(256) + 200, 150, 50);
+        GuiButton ok = new GuiButton("Ok", 128, 32, renderEngine.loadTexture("message/button"), (int) GuiUtilities.getCenteredObjectX(512) + 5, (int) GuiUtilities.getCenteredObjectY(256) + 200, 150, 50);
         if (yesAction != null) {
             ok.setAction(yesAction);
         } else {

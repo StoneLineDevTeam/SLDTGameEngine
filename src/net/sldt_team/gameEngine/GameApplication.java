@@ -3,6 +3,7 @@ package net.sldt_team.gameEngine;
 import net.sldt_team.gameEngine.exception.code.ErrorCode008;
 import net.sldt_team.gameEngine.ext.EnumOS2;
 import net.sldt_team.gameEngine.ext.EnumOSMappingHelper;
+import net.sldt_team.gameEngine.ext.Translator;
 import net.sldt_team.gameEngine.ext.gameSettings.GameSettings;
 import net.sldt_team.gameEngine.ext.Session;
 import net.sldt_team.gameEngine.exception.GameException;
@@ -13,9 +14,12 @@ import net.sldt_team.gameEngine.logging.OutputStreamToLogger;
 import net.sldt_team.gameEngine.particle.ParticleManager;
 import net.sldt_team.gameEngine.renderengine.*;
 import net.sldt_team.gameEngine.renderengine.assetSystem.AssetType;
+import net.sldt_team.gameEngine.renderengine.decoders.GTFTextureDecoder;
+import net.sldt_team.gameEngine.renderengine.decoders.PNGTextureDecoder;
 import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
+import net.sldt_team.gameEngine.renderengine.helper.TextureFormatHelper;
 import net.sldt_team.gameEngine.screen.Screen;
-import net.sldt_team.gameEngine.sound.SoundManager;
+import net.sldt_team.gameEngine.sound.SoundEngine;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.*;
@@ -79,7 +83,7 @@ public abstract class GameApplication implements Runnable {
     /**
      * The sound manager
      */
-    public SoundManager soundManager;
+    public SoundEngine soundEngine;
 
     /**
      * Instance of the game settings
@@ -112,7 +116,7 @@ public abstract class GameApplication implements Runnable {
     private static String appDirName;
 
     //Game exception handler
-    private ExceptionHandler exceptionHandler;
+    private IExceptionHandler exceptionHandler;
 
     //The game name & version
     private String gameName;
@@ -130,6 +134,9 @@ public abstract class GameApplication implements Runnable {
     //The timer power
     private float timer;
 
+    //Is this GameApplication using the default mouse cursor
+    private boolean gameUsesDefaultCursor;
+
     /**
      * Initializes a new Game App
      *
@@ -141,7 +148,7 @@ public abstract class GameApplication implements Runnable {
      * @param name       The name of the game to display on application's title bar
      * @param version    The game version (use getGameVersion() to get it)
      */
-    public GameApplication(String loggerName, Session session, float timerPower, String dirName, ExceptionHandler exhandler, String name, String version) {
+    public GameApplication(String loggerName, Session session, float timerPower, String dirName, IExceptionHandler exhandler, String name, String version) {
         log = Logger.getLogger(loggerName);
         appDirName = dirName;
         exceptionHandler = exhandler;
@@ -162,6 +169,15 @@ public abstract class GameApplication implements Runnable {
         log.info("Binding " + EngineConstants.BINDING_VERSION);
         System.setOut(new PrintStream(new OutputStreamToLogger(log, Level.INFO), true));
         System.setErr(new PrintStream(new OutputStreamToLogger(log, Level.SEVERE), true));
+
+        gameUsesDefaultCursor = true;
+    }
+
+    /**
+     * Call this if you plan to remove the default cursor (You'll need to make the cursor render yourself).
+     */
+    protected void setHasCustomCursor(){
+        gameUsesDefaultCursor = false;
     }
 
     /**
@@ -188,6 +204,14 @@ public abstract class GameApplication implements Runnable {
     }
 
     private void init() {
+        TextureFormatHelper.instance.registerNewTextureFormat("PNG", new PNGTextureDecoder());
+        TextureFormatHelper.instance.registerNewTextureFormat("GTF", new GTFTextureDecoder());
+        if (this instanceof IRegistryModifier){
+            IRegistryModifier interfacer = (IRegistryModifier) this;
+            interfacer.registerCustomDecoders(TextureFormatHelper.instance);
+            interfacer.registerCustomSounds(soundEngine);
+        }
+
         getGameDir();
 
         lastFPS = getTime();
@@ -199,8 +223,19 @@ public abstract class GameApplication implements Runnable {
         fontRenderer = new FontRenderer(renderEngine, fontName);
         background = "backgrounds/sldtBG";
         particleManager = new ParticleManager();
-        soundManager = new SoundManager(log);
+        soundEngine = new SoundEngine(log);
         gameSettings.loadSettings();
+    }
+
+    /**
+     * Sets the game lang file name to whatever you want
+     */
+    protected void setDefaultLang(String lng){
+        if (Translator.instance != null){
+            log.severe("Unable to set the game language : Translator already initialized !");
+            return;
+        }
+        new Translator(lng);
     }
 
     /**
@@ -290,17 +325,22 @@ public abstract class GameApplication implements Runnable {
         fontRenderer.updateFontAnimation();
 
         if (!initialized) {
-            initTime += 1;
-            sldtTicks++;
-            sldtScaleTicks++;
-            if (sldtTicks >= 30) {
-                rotate += 0.1F;
-                sldtTicks = 0;
+            if (this instanceof IPreloadModifier){
+                IPreloadModifier modifier = (IPreloadModifier) this;
+                modifier.updatePreLoadScreen();
+            } else {
+                sldtTicks++;
+                sldtScaleTicks++;
+                if (sldtTicks >= 30) {
+                    rotate += 0.1F;
+                    sldtTicks = 0;
+                }
+                if (sldtScaleTicks >= 60) {
+                    scale += 0.001F;
+                    sldtScaleTicks = 0;
+                }
             }
-            if (sldtScaleTicks >= 60) {
-                scale += 0.001F;
-                sldtScaleTicks = 0;
-            }
+            initTime++;
             if (initTime >= 5000) {
                 initialized = true;
                 gameTimer = new Timer(timer);
@@ -325,19 +365,34 @@ public abstract class GameApplication implements Runnable {
 
     private void render() {
         if (!initialized) {
-            fontRenderer.setRenderingSize(5);
-            fontRenderer.setRenderingColor(ColorHelper.GREEN);
-            fontRenderer.renderString("SLDT's GameEngine " + EngineConstants.ENGINE_VERSION, getScreenWidth() - fontRenderer.getStringWidth("SLDT's GameEngine " + EngineConstants.ENGINE_VERSION), getScreenHeight() - 64);
-            Texture i = renderEngine.loadTexture(background);
-            renderEngine.bindTexture(i);
-            renderEngine.setRotationLevel(-rotate);
-            renderEngine.setScaleLevel(1 - scale);
-            renderEngine.renderQuad(10, 10, getScreenWidth() - 20, getScreenHeight() - 20);
+            if (this instanceof IPreloadModifier){
+                IPreloadModifier modifier = (IPreloadModifier) this;
+                modifier.renderPreLoadScreen();
+            } else {
+                fontRenderer.setRenderingSize(5);
+                fontRenderer.setRenderingColor(ColorHelper.GREEN);
+                fontRenderer.renderString("SLDT's GameEngine " + EngineConstants.ENGINE_VERSION, getScreenWidth() - fontRenderer.getStringWidth("SLDT's GameEngine " + EngineConstants.ENGINE_VERSION), getScreenHeight() - 64);
+                Texture i = renderEngine.loadTexture(background);
+                renderEngine.bindTexture(i);
+
+                renderEngine.addTranslationMatrix(10, 10);
+                renderEngine.enableMiddleRotationScale();
+                renderEngine.setRotationLevel(-rotate);
+                renderEngine.setScaleLevel(1 - scale);
+                renderEngine.renderQuad(10, 10, getScreenWidth() - 20, getScreenHeight() - 20);
+            }
+        }
+
+        if (!gameUsesDefaultCursor) {
+            Mouse.setGrabbed(true);
         }
 
         if (!isWindowExiting) {
             if (currentFrame != null) {
                 currentFrame.drawWindow(renderEngine, fontRenderer);
+                if (!gameUsesDefaultCursor) {
+                    currentFrame.showCursor = false;
+                }
             }
         }
 
@@ -434,7 +489,7 @@ public abstract class GameApplication implements Runnable {
         }
         exitGame();
         log.info("Closing OpenAL...");
-        soundManager.onClosingGame();
+        soundEngine.onClosingGame();
         AL.destroy();
         log.info("OpenAL closed !");
         log.info("Closing OpenGL frame...");
@@ -462,11 +517,11 @@ public abstract class GameApplication implements Runnable {
         }
         ByteBuffer[] shit = new ByteBuffer[2];
         if (getIconPackage() == null) {
-            shit[0] = renderEngine.mountTexture(GameApplication.class.getResourceAsStream("icon16.png"));
-            shit[1] = renderEngine.mountTexture(GameApplication.class.getResourceAsStream("icon32.png"));
+            shit[0] = renderEngine.mountTexture("PNG", GameApplication.class.getResourceAsStream("icon16.png"));
+            shit[1] = renderEngine.mountTexture("PNG", GameApplication.class.getResourceAsStream("icon32.png"));
         } else {
-            shit[0] = renderEngine.mountTexture(ClassLoader.getSystemResourceAsStream("./" + getIconPackage() + "/gameIcon16.png"));
-            shit[1] = renderEngine.mountTexture(ClassLoader.getSystemResourceAsStream("./" + getIconPackage() + "/gameIcon32.png"));
+            shit[0] = renderEngine.mountTexture("PNG", ClassLoader.getSystemResourceAsStream("./" + getIconPackage() + "/gameIcon16.png"));
+            shit[1] = renderEngine.mountTexture("PNG", ClassLoader.getSystemResourceAsStream("./" + getIconPackage() + "/gameIcon32.png"));
         }
         Display.setIcon(shit);
         Display.create();
@@ -476,10 +531,19 @@ public abstract class GameApplication implements Runnable {
         }
         renderEngine = new RenderEngine(exceptionHandler, new AssetManager(getGameDir() + File.separator + "resources" + File.separator + gameName.toLowerCase(), getAssetsFileType()), log);
         fontRenderer = new FontRenderer(renderEngine, fontName);
+
+
         /*if (currentFrame != null) {
             currentFrame.refreshScreen();
         }*/
     }
+
+    /*private void reloadCurrentFrame(){
+        if (currentFrame != null){
+            Class<? extends Screen> screenClass = currentFrame.getClass();
+            screenClass
+        }
+    }*/
 
     /**
      * Updates the display mode (resolution and fullscreen)
@@ -518,11 +582,11 @@ public abstract class GameApplication implements Runnable {
             init();
             ByteBuffer[] shit = new ByteBuffer[2];
             if (getIconPackage() == null) {
-                shit[0] = renderEngine.mountTexture(GameApplication.class.getResourceAsStream("icon16.png"));
-                shit[1] = renderEngine.mountTexture(GameApplication.class.getResourceAsStream("icon32.png"));
+                shit[0] = renderEngine.mountTexture("PNG", GameApplication.class.getResourceAsStream("icon16.png"));
+                shit[1] = renderEngine.mountTexture("PNG", GameApplication.class.getResourceAsStream("icon32.png"));
             } else {
-                shit[0] = renderEngine.mountTexture(ClassLoader.getSystemResourceAsStream("./" + getIconPackage() + "/gameIcon16.png"));
-                shit[1] = renderEngine.mountTexture(ClassLoader.getSystemResourceAsStream("./" + getIconPackage() + "/gameIcon32.png"));
+                shit[0] = renderEngine.mountTexture("PNG", ClassLoader.getSystemResourceAsStream("./" + getIconPackage() + "/gameIcon16.png"));
+                shit[1] = renderEngine.mountTexture("PNG", ClassLoader.getSystemResourceAsStream("./" + getIconPackage() + "/gameIcon32.png"));
             }
             Display.setIcon(shit);
             //Mouse.setNativeCursor(new org.lwjgl.input.Cursor(16, 16, 0, 0, 1, getHandMousePointer(), null));

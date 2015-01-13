@@ -1,7 +1,7 @@
 package net.sldt_team.gameEngine.format.texturefile;
 
 import net.sldt_team.gameEngine.GameApplication;
-import net.sldt_team.gameEngine.renderengine.RenderEngine;
+import net.sldt_team.gameEngine.renderengine.decoders.PNGDecoderHelper;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -11,21 +11,38 @@ import java.nio.ByteBuffer;
  */
 public class GameTextureFile {
 
-    private File fileLocation;
     private InputStream fileStream;
 
-    public GameTextureFile(File file) {
-        fileLocation = new File(file + ".gtf");
+    private ByteBuffer openGLBuffer;
+    private int texWidth;
+    private int texHeight;
+
+    public GameTextureFile(InputStream stream) {
+        fileStream = stream;
+        try {
+            openGLBuffer = openGLDecode();
+        } catch (IOException e) {
+            GameApplication.log.severe("Unable to decode texture file");
+        }
     }
 
-    public InputStream decodeAsPNG() {
+    public ByteBuffer getData(){
+        return openGLBuffer;
+    }
+    public int getWidth(){
+        return texWidth;
+    }
+    public int getHeight(){
+        return texHeight;
+    }
+
+    private InputStream decodeAsPNG() {
         try {
-            FileInputStream in = new FileInputStream(fileLocation);
             OutputStream out = new ByteArrayOutputStream();
 
             byte[] b = new byte[1024];
             int length;
-            while ((length = in.read(b)) > 0) {
+            while ((length = fileStream.read(b)) > 0) {
                 for (int i = 0; i < b.length; i++) {
                     byte b1 = b[i];
                     b[i] = (byte) (b1 ^ 16);
@@ -33,22 +50,25 @@ public class GameTextureFile {
                 out.write(b, 0, length);
             }
 
-            in.close();
+
+            fileStream.close();
             return new ByteArrayInputStream(((ByteArrayOutputStream) out).toByteArray());
         } catch (IOException e) {
-            GameApplication.log.warning("Unable to decode texture file : " + fileLocation);
+            GameApplication.log.warning("Unable to decode texture file");
         }
         return null;
     }
 
-    public ByteBuffer openGLDecode(RenderEngine renderEngine) {
-        if (fileStream == null) {
-            throw new NullPointerException("Unable to decode PNG input stream, cause : FILE_INPUT_STREAM = null");
-        }
-        try {
-            return renderEngine.mountTexture(fileStream);
-        } catch (IOException e) {
-            GameApplication.log.warning("Unable to decode PNG stream");
+    private ByteBuffer openGLDecode() throws IOException {
+        InputStream forPNGDecoderHelper = decodeAsPNG();
+        if (forPNGDecoderHelper != null){
+            PNGDecoderHelper helper = new PNGDecoderHelper(forPNGDecoderHelper);
+            texWidth = helper.getWidth();
+            texHeight = helper.getHeight();
+            ByteBuffer buf = ByteBuffer.allocateDirect(4 * texWidth * texHeight);
+            helper.decode(buf, texWidth * 4, PNGDecoderHelper.Format.RGBA);
+            buf.flip();
+            return buf;
         }
         return null;
     }

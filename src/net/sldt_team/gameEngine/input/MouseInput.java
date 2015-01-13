@@ -1,13 +1,13 @@
 package net.sldt_team.gameEngine.input;
 
 import net.sldt_team.gameEngine.GameApplication;
-import net.sldt_team.gameEngine.input.mouse.MouseHandler;
+import net.sldt_team.gameEngine.input.mouse.IMouseHandler;
 import net.sldt_team.gameEngine.input.mouse.MouseHelper;
 import org.lwjgl.input.Mouse;
 
 public class MouseInput {
 
-    private MouseHandler theHandler;
+    private IMouseHandler theHandler;
     private boolean clickedLeft;
     private boolean clickedWheel;
     private boolean clickedRight;
@@ -17,7 +17,7 @@ public class MouseInput {
      *
      * @param handler The handler to associate
      */
-    public MouseInput(MouseHandler handler) {
+    public MouseInput(IMouseHandler handler) {
         theHandler = handler;
     }
 
@@ -71,7 +71,7 @@ public class MouseInput {
     /**
      * Returns associated Handler
      */
-    public MouseHandler getHandler() {
+    public IMouseHandler getHandler() {
         return theHandler;
     }
 }

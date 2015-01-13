@@ -1,11 +1,11 @@
 package net.sldt_team.gameEngine.exception.code;
 
-import net.sldt_team.gameEngine.exception.GameError;
+import net.sldt_team.gameEngine.exception.IGameError;
 
 /**
  * @exclude
  */
-public class ErrorCode007 implements GameError {
+public class ErrorCode007 implements IGameError {
 
     public String getDescription() {
         return "PARTICLE_GENERATOR_FAILURE";

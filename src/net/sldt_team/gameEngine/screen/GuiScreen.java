@@ -3,7 +3,7 @@ package net.sldt_team.gameEngine.screen;
 import net.sldt_team.gameEngine.gui.Gui;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
-import net.sldt_team.gameEngine.screen.event.GuisEventProvider;
+import net.sldt_team.gameEngine.screen.event.IGuisEventProvider;
 
 public abstract class GuiScreen extends Screen {
 
@@ -13,8 +13,8 @@ public abstract class GuiScreen extends Screen {
      * Displays a new Gui
      */
     public void displayGui(Gui par1Gui) {
-        if (this instanceof GuisEventProvider) {
-            GuisEventProvider provider = (GuisEventProvider) this;
+        if (this instanceof IGuisEventProvider) {
+            IGuisEventProvider provider = (IGuisEventProvider) this;
             if (!provider.canGuiDisplay(par1Gui)) {
                 return;
             }
@@ -25,8 +25,8 @@ public abstract class GuiScreen extends Screen {
         par1Gui.onGuiInit();
         currentGui = par1Gui;
 
-        if (this instanceof GuisEventProvider) {
-            GuisEventProvider provider = (GuisEventProvider) this;
+        if (this instanceof IGuisEventProvider) {
+            IGuisEventProvider provider = (IGuisEventProvider) this;
             provider.onGuiDisplayed(par1Gui);
         }
     }
@@ -35,8 +35,8 @@ public abstract class GuiScreen extends Screen {
      * Clears the current displayed Gui
      */
     public void clearGui() {
-        if (this instanceof GuisEventProvider) {
-            GuisEventProvider provider = (GuisEventProvider) this;
+        if (this instanceof IGuisEventProvider) {
+            IGuisEventProvider provider = (IGuisEventProvider) this;
             if (!provider.canGuiClear(currentGui)) {
                 return;
             }
@@ -45,8 +45,8 @@ public abstract class GuiScreen extends Screen {
         currentGui = null;
         areControlsEnabled = true;
 
-        if (this instanceof GuisEventProvider) {
-            GuisEventProvider provider = (GuisEventProvider) this;
+        if (this instanceof IGuisEventProvider) {
+            IGuisEventProvider provider = (IGuisEventProvider) this;
             provider.onGuiCleared();
         }
     }

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameException extends RuntimeException {
-    private GameError errorCode;
+    private IGameError errorCode;
     private Exception exception;
 
     /**
@@ -14,7 +14,7 @@ public class GameException extends RuntimeException {
      *
      * @param code Error code
      */
-    public GameException(GameError code) {
+    public GameException(IGameError code) {
         errorCode = code;
         exception = new Exception(errorCode.getCode() + " -> " + errorCode.getDescription());
     }

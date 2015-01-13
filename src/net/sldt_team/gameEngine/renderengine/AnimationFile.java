@@ -43,7 +43,7 @@ public class AnimationFile {
                 }
                 GameApplication.log.info("Frame found : " + frames[i].toString());
             }
-            Animation anim = new Animation(file.interval, file.type, frames, file.usingUV);
+            Animation anim = new Animation(file.interval, file.type, frames, file.usingUV, file.texEnv);
             GameApplication.log.info("Interval is " + anim.getInterval());
             GameApplication.log.info("Animation successfully loaded !");
             return anim;
