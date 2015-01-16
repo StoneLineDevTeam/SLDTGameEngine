@@ -42,7 +42,7 @@ public abstract class Screen {
     private MessageDisplay displayedMessage = null;
 
     public Screen() {
-        screenComponents = new ArrayList<IScreenComponent>();
+        //screenComponents = new ArrayList<IScreenComponent>();
     }
 
     /**
@@ -104,6 +104,7 @@ public abstract class Screen {
      * @exclude
      */
     public void doInit() {
+        screenComponents = new ArrayList<IScreenComponent>();
         backgroundImage = theGame.renderEngine.loadTexture("backgrounds/mainBG");
         initScreen();
     }
@@ -173,23 +174,6 @@ public abstract class Screen {
     }
 
     /**
-     * Refrechs the screen
-     */
-    public void refreshScreen() {
-        Runnable r = new Runnable() {
-            public void run() {
-                for (IScreenComponent component : screenComponents) {
-                    component.onComponentRemove();
-                }
-                screenComponents.clear();
-            }
-        };
-        messageQueue.add(r);
-
-        initScreen();
-    }
-
-    /**
      * @exclude
      */
     public void onExit() {
@@ -199,10 +183,11 @@ public abstract class Screen {
                     component.onComponentRemove();
                 }
                 screenComponents.clear();
-                screenComponents = null;
+                //screenComponents = null;
             }
         };
         messageQueue.add(r);
+        theGame = null;
 
         onExitingScreen();
     }

@@ -6,6 +6,7 @@ import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.IExceptionHandler;
 import net.sldt_team.gameEngine.exception.GameException;
 import net.sldt_team.gameEngine.renderengine.animation.Animation;
+import net.sldt_team.gameEngine.renderengine.assetSystem.Asset;
 import net.sldt_team.gameEngine.renderengine.decoders.ITextureDecoder;
 import net.sldt_team.gameEngine.renderengine.helper.*;
 import net.sldt_team.gameEngine.util.FileUtilities;
@@ -16,6 +17,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -49,6 +51,8 @@ public class RenderEngine {
 
     private boolean translationMatrixAdded;
 
+    public final AssetsManager assetsManager;
+
     /**
      * @exclude
      */
@@ -64,7 +68,8 @@ public class RenderEngine {
     /**
      * @exclude
      */
-    public RenderEngine(IExceptionHandler handler, AssetManager assets, Logger log) {
+    public RenderEngine(IExceptionHandler handler, AssetsManager assets, Logger log) {
+        assetsManager = assets;
         textureMap = new HashMap<String, Texture>();
         animationMap = new HashMap<String, Animation>();
         exceptionHandler = handler;
@@ -183,10 +188,10 @@ public class RenderEngine {
     }
 
     /**
-     * Gets texture from texture path (You don't need to specify .png, the engine knows it)
+     * Gets texture from texture path (You don't need to specify extension, the engine knows it)
      */
     public Texture loadTexture(String path) {
-        String texPath = path + ".png";
+        String texPath = "materials/" + path;
         try {
             if (textureMap.get(texPath) != null) {
                 return textureMap.get(texPath);
@@ -210,33 +215,40 @@ public class RenderEngine {
         if (animationMap.containsKey(path)) {
             return animationMap.get(path);
         }
-        String f = FileUtilities.getResourcesDirectory() + File.separator + "animations" + File.separator + path;
-        AnimationFile file = new AnimationFile(f);
+        String f = "animations/" + path + ".anim";
+        if (!assetsManager.hasAsset(f)){
+            logger.warning("Failed to load animation : no such file");
+            return null;
+        }
+        Asset asset = assetsManager.getAsset(f);
+        ByteArrayInputStream stream = new ByteArrayInputStream(asset.assetData);
+        AnimationFile file = new AnimationFile(stream);
         Animation anim = file.loadFile();
         animationMap.put(path, anim);
+        try {
+            stream.close();
+        } catch (IOException e) {
+            logger.warning("There was an IO error while loading animation : " + f);
+        }
         return anim;
     }
 
-    private void loadTextureFromAsset(String name, File path) {
+    private void loadTextureFromAsset(String name, byte[] data) {
         int id = -1;
         try {
             boolean flag = false;
             ByteBuffer texture = null;
-            if (path == null) {
+            if (data == null) {
                 flag = true;
             } else {
-                if (FileUtilities.getFileExtension(path) != null) {
-                    String extension = FileUtilities.getFileExtension(path).toUpperCase();
-                    if (!path.exists() || !TextureFormatHelper.instance.canTextureFileBeRead(path)) {
-                        flag = true;
-                    }
-                    if (!flag) {
-                        FileInputStream stream = new FileInputStream(path);
-                        texture = mountTexture(extension, stream);
-                    }
-                } else {
-                    flag = true;
+                String extension = "";
+                int i = name.lastIndexOf('.');
+                if (i > 0 && i < name.length() - 1) {
+                    extension = name.substring(i + 1).toLowerCase();
                 }
+                name = name.replace("." + extension, "");
+
+                texture = mountTexture(extension, new ByteArrayInputStream(data));
             }
             if (flag || texture == null) {
                 logger.warning("RENDER ENGINE : Unable to mount texture -> \"" + name + "\"");
@@ -262,24 +274,14 @@ public class RenderEngine {
     }
 
     /**
-     * Returns if an asset exists at given path
+     * Reloads this rendering engine
      */
-    public boolean hasAsset(String path) {
-        return textureMap.containsKey(path) && textureMap.get(path) != null;
-    }
-
-    /**
-     * @exclude
-     */
-    protected void loadAssets(ArrayList<String> namesToMap, ArrayList<File> filesToLoad) {
-        for (int i = 0; i < namesToMap.size(); i++) {
-            File f = filesToLoad.get(i);
-            String name = namesToMap.get(i);
-            if (!name.endsWith(".png")) {
-                logger.info("RENDER ENGINE : Not loading asset directory :  \"" + name + "\"");
-                continue;
+    public void reloadRenderingEngine() {
+        List<Asset> assetList = assetsManager.getAllLoadedAssets();
+        for (Asset asset : assetList) {
+            if (asset.isTexture) {
+                loadTextureFromAsset(asset.assetName, asset.assetData);
             }
-            loadTextureFromAsset(name, f);
         }
     }
 

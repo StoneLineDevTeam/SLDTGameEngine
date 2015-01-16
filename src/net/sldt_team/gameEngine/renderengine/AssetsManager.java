@@ -1,6 +1,9 @@
 package net.sldt_team.gameEngine.renderengine;
 
 import net.sldt_team.gameEngine.GameApplication;
+import net.sldt_team.gameEngine.renderengine.assetSystem.Asset;
+import net.sldt_team.gameEngine.renderengine.helper.TextureFormatHelper;
+import net.sldt_team.gameEngine.util.MathUtilities;
 import net.sldt_team.gameEngine.util.ZipFileUtilities;
 import net.sldt_team.gameEngine.util.FileUtilities;
 import net.sldt_team.gameEngine.exception.GameException;
@@ -9,23 +12,31 @@ import net.sldt_team.gameEngine.renderengine.assetSystem.AssetType;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-/**
- * @exclude
- */
-public class AssetManager {
+public class AssetsManager {
 
     private File assetFile = null;
     private RenderEngine renderEngine;
     private AssetType type;
 
-    public AssetManager(String fileLocation, AssetType t) {
+    private Asset[] assetsMap;
+
+    /**
+     * @exclude
+     */
+    public AssetsManager(String fileLocation, AssetType t) {
         if (t.isZIP() || t.isGAF()) {
             assetFile = new File(fileLocation + ".assets." + t.getAssetFileExtention());
             type = t;
         }
     }
 
+    /**
+     * @exclude
+     */
     protected void initialize(RenderEngine engine) {
         renderEngine = engine;
         if (type.isZIP()) {
@@ -33,10 +44,90 @@ public class AssetManager {
         } else if (type.isGAF()) {
             loadAssetFileAsGAF();
         }
+        renderEngine.reloadRenderingEngine();
+    }
+
+    /**
+     * Returns if an asset with the given name is existing
+     */
+    public boolean hasAsset(String name){
+        for (Asset asset : assetsMap){
+            if (asset != null && asset.assetName.equals(name)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the asset corresponding to the given name
+     */
+    public Asset getAsset(String name){
+        for (Asset asset : assetsMap){
+            if (asset != null && asset.assetName.equals(name)){
+                return asset;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns all loaded assets in the memory
+     */
+    public List<Asset> getAllLoadedAssets(){
+        List<Asset> list = new ArrayList<Asset>();
+        for (Asset asset : assetsMap){
+            if (asset != null){
+                list.add(asset);
+            }
+        }
+        return list;
+    }
+
+    private void addAssets(ArrayList<String> namesToMap, ArrayList<File> filesToLoad){
+        assetsMap = new Asset[MathUtilities.findNearestPowerOfTwo(namesToMap.size())];
+        for (int i = 0 ; i < namesToMap.size() ; i++) {
+            String name = namesToMap.get(i);
+            File f = filesToLoad.get(i);
+            if (TextureFormatHelper.instance.canTextureFileBeRead(f)) {
+                try {
+                    FileInputStream stream = new FileInputStream(f);
+                    byte[] data = getAssetData(stream);
+                    assetsMap[i] = new Asset(name, true, data);
+                    stream.close();
+                } catch (Exception e) {
+                    renderEngine.logger.warning("ASSETS LOADER : Ignoring asset,  \"" + name + "\" : invalid or corrupted file.");
+                }
+            } else {
+                try {
+                    FileInputStream stream = new FileInputStream(f);
+                    byte[] data = getAssetData(stream);
+                    assetsMap[i] = new Asset(name, false, data);
+                    stream.close();
+                } catch (Exception e) {
+                    renderEngine.logger.warning("ASSETS LOADER : Ignoring asset,  \"" + name + "\" : invalid or corrupted file.");
+                }
+            }
+        }
+    }
+
+    private byte[] getAssetData(InputStream is) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        int nRead;
+        byte[] data = new byte[16384];
+
+        while ((nRead = is.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+
+        buffer.flush();
+
+        return buffer.toByteArray();
     }
 
     private void loadAssetFileAsZIP() {
-        GameApplication.log.info("RENDER ENGINE : Extracting game assets...");
+        renderEngine.logger.info("ASSETS LOADER : Extracting game assets...");
         ArrayList<String[]> var = ZipFileUtilities.getFiles(assetFile.toString());
         ArrayList<String> list = new ArrayList<String>();
         ArrayList<File> list1 = new ArrayList<File>();
@@ -61,34 +152,35 @@ public class AssetManager {
                 e.printStackTrace();
             }
         }
-        renderEngine.logger.info("RENDER ENGINE : Game assets extraction ended with no errors");
+        renderEngine.logger.info("ASSETS LOADER : Game assets extraction ended with no errors");
 
-        renderEngine.logger.info("RENDER ENGINE : Mounting game assets...");
-        renderEngine.loadAssets(list, list1);
-        if (renderEngine.hasAsset("backgrounds/sldtBG.png")) {
+        renderEngine.logger.info("ASSETS LOADER : Mounting game assets...");
+        addAssets(list, list1);
+        if (hasAsset("materials/backgrounds/sldtBG.png")) {
             try {
-                String s = (FileUtilities.getMD5Checksum(new FileInputStream(new File(GameApplication.getGameDir() + File.separator + "assetCache" + File.separator + "backgrounds" + File.separator + "sldtBG.png"))));
+                ByteArrayInputStream stream = new ByteArrayInputStream(getAsset("materials/backgrounds/sldtBG.png").assetData);
+                String s = (FileUtilities.getMD5Checksum(stream));
+                stream.close();
                 if (!s.equals("d59a49000715febb4560af1a4d3f0f45")) {
                     throw new GameException(new ErrorCode005());
                 }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                System.exit(0);
+            } catch (Exception e) {
+                throw new GameException(new ErrorCode005());
             }
         } else {
             renderEngine.logger.severe("RenderEngine has detected that you've not included SLDT's-GameEngine background file in your assets ! Please correct your environment.");
             renderEngine.logger.severe("This game will now be stopped...");
             System.exit(0);
         }
-        renderEngine.logger.info("RENDER ENGINE : Game assets mounted successfully !");
+        renderEngine.logger.info("ASSETS LOADER : Game assets mounted successfully !");
 
-        GameApplication.log.info("RENDER ENGINE : Deleting assets extraction cache...");
+        renderEngine.logger.info("ASSETS LOADER : Deleting assets extraction cache...");
         try {
             FileUtilities.delete(new File(GameApplication.getGameDir() + File.separator + "assetCache" + File.separator));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        GameApplication.log.info("RENDER ENGINE : Assets extraction cache deleted successfully !");
+        renderEngine.logger.info("ASSETS LOADER : Assets extraction cache deleted successfully !");
     }
 
     private void loadAssetFileAsGAF() {
@@ -123,7 +215,7 @@ public class AssetManager {
     }
 
     private void loadZIP(File assetFile) {
-        GameApplication.log.info("RENDER ENGINE : Extracting game assets...");
+        renderEngine.logger.info("ASSETS LOADER : Extracting game assets...");
         ArrayList<String[]> var = ZipFileUtilities.getFiles(assetFile.toString());
         ArrayList<String> list = new ArrayList<String>();
         ArrayList<File> list1 = new ArrayList<File>();
@@ -148,34 +240,35 @@ public class AssetManager {
                 e.printStackTrace();
             }
         }
-        renderEngine.logger.info("RENDER ENGINE : Game assets extraction ended with no errors");
+        renderEngine.logger.info("ASSETS LOADER : Game assets extraction ended with no errors");
 
-        renderEngine.logger.info("RENDER ENGINE : Mounting game assets...");
-        renderEngine.loadAssets(list, list1);
-        if (renderEngine.hasAsset("backgrounds/sldtBG.png")) {
+        renderEngine.logger.info("ASSETS LOADER : Mounting game assets...");
+        addAssets(list, list1);
+        if (hasAsset("materials/backgrounds/sldtBG.png")) {
             try {
-                String s = (FileUtilities.getMD5Checksum(new FileInputStream(new File(GameApplication.getGameDir() + File.separator + "assetCache" + File.separator + "backgrounds" + File.separator + "sldtBG.png"))));
+                ByteArrayInputStream stream = new ByteArrayInputStream(getAsset("materials/backgrounds/sldtBG.png").assetData);
+                String s = (FileUtilities.getMD5Checksum(stream));
+                stream.close();
                 if (!s.equals("d59a49000715febb4560af1a4d3f0f45")) {
                     throw new GameException(new ErrorCode005());
                 }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                System.exit(0);
+            } catch (Exception e) {
+                throw new GameException(new ErrorCode005());
             }
         } else {
             renderEngine.logger.severe("RenderEngine has detected that you've not included SLDT's-GameEngine background file in your assets ! Please correct your environment.");
             renderEngine.logger.severe("This game will now be stopped...");
             System.exit(0);
         }
-        renderEngine.logger.info("RENDER ENGINE : Game assets mounted successfully !");
+        renderEngine.logger.info("ASSETS LOADER : Game assets mounted successfully !");
 
-        GameApplication.log.info("RENDER ENGINE : Deleting assets extraction cache...");
+        renderEngine.logger.info("ASSETS LOADER : Deleting assets extraction cache...");
         try {
             assetFile.delete();
             FileUtilities.delete(new File(GameApplication.getGameDir() + File.separator + "assetCache" + File.separator));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        GameApplication.log.info("RENDER ENGINE : Assets extraction cache deleted successfully !");
+        renderEngine.logger.info("ASSETS LOADER : Assets extraction cache deleted successfully !");
     }
 }

@@ -13,24 +13,20 @@ import java.io.*;
  */
 public class AnimationFile {
 
-    private File fileToLoad;
+    private InputStream fileData;
 
-    protected AnimationFile(String file) {
-        fileToLoad = new File(file + ".anim");
-        if (!fileToLoad.exists()) {
-            GameApplication.log.severe("Failed to load format " + file + " : no such file.");
-            fileToLoad = null;
-        }
+    protected AnimationFile(InputStream data) {
+        fileData = data;
     }
 
     protected Animation loadFile() {
         try {
-            GameApplication.log.info("Loading format...");
+            GameApplication.log.info("Loading animation...");
             Gson gson = new GsonBuilder().create();
-            AbstractAnimationFile file = gson.fromJson(new FileReader(fileToLoad), AbstractAnimationFile.class);
+            AbstractAnimationFile file = gson.fromJson(new InputStreamReader(fileData), AbstractAnimationFile.class);
             TextureFrame[] frames = new TextureFrame[file.frames.length];
             if (file.frames.length == 0) {
-                GameApplication.log.severe("Failed to load format : Animation frames must have, at least, 1 entry !");
+                GameApplication.log.severe("Failed to load animation : Animation frames must have, at least, 1 entry !");
                 return null;
             }
             for (int i = 0; i < file.frames.length; i++) {
@@ -48,7 +44,7 @@ public class AnimationFile {
             GameApplication.log.info("Animation successfully loaded !");
             return anim;
         } catch (Exception e) {
-            GameApplication.log.severe("Failed to load format : " + e.getClass().getName() + "_" + e.getMessage());
+            GameApplication.log.severe("Failed to load animation : " + e.getClass().getName() + "_" + e.getMessage());
         }
         return null;
     }

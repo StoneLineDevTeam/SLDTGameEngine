@@ -219,7 +219,7 @@ public abstract class GameApplication implements Runnable {
         if (getAssetsFileType() == null) {
             throw new GameException(new ErrorCode008());
         }
-        renderEngine = new RenderEngine(exceptionHandler, new AssetManager(getGameDir() + File.separator + "resources" + File.separator + gameName.toLowerCase(), getAssetsFileType()), log);
+        renderEngine = new RenderEngine(exceptionHandler, new AssetsManager(getGameDir() + File.separator + "resources" + File.separator + gameName.toLowerCase(), getAssetsFileType()), log);
         fontRenderer = new FontRenderer(renderEngine, fontName);
         background = "backgrounds/sldtBG";
         particleManager = new ParticleManager();
@@ -529,21 +529,15 @@ public abstract class GameApplication implements Runnable {
         if (getAssetsFileType() == null) {
             throw new GameException(new ErrorCode008());
         }
-        renderEngine = new RenderEngine(exceptionHandler, new AssetManager(getGameDir() + File.separator + "resources" + File.separator + gameName.toLowerCase(), getAssetsFileType()), log);
+        renderEngine.reloadRenderingEngine();
         fontRenderer = new FontRenderer(renderEngine, fontName);
 
-
-        /*if (currentFrame != null) {
-            currentFrame.refreshScreen();
-        }*/
-    }
-
-    /*private void reloadCurrentFrame(){
-        if (currentFrame != null){
-            Class<? extends Screen> screenClass = currentFrame.getClass();
-            screenClass
+        if (currentFrame != null) {
+            currentFrame.onExit();
+            currentFrame.setGame(this);
+            currentFrame.doInit();
         }
-    }*/
+    }
 
     /**
      * Updates the display mode (resolution and fullscreen)
