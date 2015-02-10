@@ -13,7 +13,7 @@ public class PNGTextureDecoder implements ITextureDecoder {
         try {
             curStream = new PNGDecoderHelper(stream);
         } catch (IOException e) {
-            GameApplication.log.warning("Unable to load texture");
+            GameApplication.engineLogger.warning("Unable to load texture");
         }
     }
 
@@ -24,7 +24,7 @@ public class PNGTextureDecoder implements ITextureDecoder {
             buf.flip();
             return buf;
         } catch (IOException e) {
-            GameApplication.log.warning("Unable to decode texture");
+            GameApplication.engineLogger.warning("Unable to decode texture");
         }
         return null;
     }

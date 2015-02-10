@@ -12,9 +12,7 @@ import net.sldt_team.gameEngine.renderengine.assetSystem.AssetType;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class AssetsManager {
 
@@ -137,7 +135,7 @@ public class AssetsManager {
             try {
                 String s1 = s.replace("/", File.separator);
                 File var2 = new File(GameApplication.getGameDir() + File.separator + "assetCache" + File.separator + s1 + " ");
-                System.out.println(var2.toString());
+                renderEngine.logger.info(var2.toString());
                 File var5 = var2.getParentFile();
                 if (!var5.exists()) {
                     var5.mkdirs();
@@ -168,7 +166,7 @@ public class AssetsManager {
                 throw new GameException(new ErrorCode005());
             }
         } else {
-            renderEngine.logger.severe("RenderEngine has detected that you've not included SLDT's-GameEngine background file in your assets ! Please correct your environment.");
+            renderEngine.logger.severe("RenderEngine has detected that you've not included SLDT's GameEngine background file in your assets ! Please correct your environment.");
             renderEngine.logger.severe("This game will now be stopped...");
             System.exit(0);
         }
@@ -225,7 +223,7 @@ public class AssetsManager {
             try {
                 String s1 = s.replace("/", File.separator);
                 File var2 = new File(GameApplication.getGameDir() + File.separator + "assetCache" + File.separator + s1 + " ");
-                System.out.println(var2.toString());
+                renderEngine.logger.info(var2.toString());
                 File var5 = var2.getParentFile();
                 if (!var5.exists()) {
                     var5.mkdirs();

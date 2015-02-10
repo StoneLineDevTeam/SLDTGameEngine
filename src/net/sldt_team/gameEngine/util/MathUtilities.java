@@ -82,35 +82,6 @@ public class MathUtilities {
     }
 
     /**
-     * Returns the distance (in pixels) between two points
-     */
-    public static float getPointsDistance(float x, float y, float x1, float y1){
-        /**
-         * A
-         * |\
-         * | \
-         * |__\
-         * B   C
-         *
-         * AC^2 = AB^2 + BC^2
-         *
-         * A(x, y)
-         * |\
-         * | \
-         * |__\
-         * C    B(x1, y1)
-         *
-         * AC = (y - y1)
-         * CB = (x - x1)
-         */
-
-        float yDist = y - y1;
-        float xDist = x - x1;
-        float pithagora = (float) (StrictMath.pow(xDist, 2) + StrictMath.pow(yDist, 2));
-        return (float) StrictMath.sqrt(pithagora);
-    }
-
-    /**
      * Returns the nearest power of two of a given integer
      */
     public static int findNearestPowerOfTwo(int x){
@@ -134,5 +105,12 @@ public class MathUtilities {
      */
     public static float getFractionalPart(double d){
         return (float)(d % 1);
+    }
+
+    public static boolean isPowerOfTwo (int x) {
+        while (((x % 2) == 0) && x > 1) {
+            x /= 2;
+        }
+        return (x == 1);
     }
 }

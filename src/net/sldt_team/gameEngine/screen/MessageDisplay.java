@@ -5,9 +5,10 @@ import net.sldt_team.gameEngine.gui.GuiButton;
 import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
-import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.renderengine.Material;
 import net.sldt_team.gameEngine.screen.message.Message;
 import net.sldt_team.gameEngine.util.GuiUtilities;
+import net.sldt_team.gameEngine.util.Vector2D;
 
 /**
  * @exclude
@@ -26,13 +27,16 @@ public class MessageDisplay {
         renderEngine.bindColor(new ColorHelper(0, 0, 0, 128));
         renderEngine.renderQuad(0, 0, GameApplication.getScreenWidth(), GameApplication.getScreenHeight());
 
-        Texture i = renderEngine.loadTexture("message/dialog");
-        renderEngine.bindTexture(i);
-        renderEngine.renderQuad(GuiUtilities.getCenteredObjectX(512), GuiUtilities.getCenteredObjectY(256), 512, 256);
+        Material i = renderEngine.getMaterial("message/dialog");
+        renderEngine.bindMaterial(i);
+
+        Vector2D centeredObject = GuiUtilities.getCenteredObject(512, 256);
+
+        renderEngine.renderQuad((float)centeredObject.getX(), (float)centeredObject.getY(), 512, 256);
 
         fontRenderer.setRenderingSize(5);
         fontRenderer.setRenderingColor(ColorHelper.WHITE);
-        fontRenderer.renderString(theMessage.getMessageTitle(), GuiUtilities.getCenteredObjectX(512) + 5, GuiUtilities.getCenteredObjectY(256));
+        fontRenderer.renderString(theMessage.getMessageTitle(), (float)centeredObject.getX() + 5, (float)centeredObject.getY());
 
         for (GuiButton button : theMessage.getButtons()) {
             button.render(renderEngine, fontRenderer);
@@ -42,13 +46,13 @@ public class MessageDisplay {
         for (String s : theMessage.getContent()) {
             fontRenderer.setRenderingSize(4);
             fontRenderer.setRenderingColor(ColorHelper.BLACK);
-            fontRenderer.renderString(s, GuiUtilities.getCenteredObjectX(512) + 100, GuiUtilities.getCenteredObjectY(256) + (50 + spacement));
+            fontRenderer.renderString(s, (float)centeredObject.getX() + 100, (float)centeredObject.getY() + (50 + spacement));
             spacement += 24;
         }
 
-        Texture j = renderEngine.loadTexture(theMessage.getTexturePath());
-        renderEngine.bindTexture(j);
-        renderEngine.renderQuad(GuiUtilities.getCenteredObjectX(512) + 15, GuiUtilities.getCenteredObjectY(256) + 50, 64, 64);
+        Material j = renderEngine.getMaterial(theMessage.getTexturePath());
+        renderEngine.bindMaterial(j);
+        renderEngine.renderQuad((float)centeredObject.getX() + 15, (float)centeredObject.getY() + 50, 64, 64);
     }
 
     protected void updateMessage() {

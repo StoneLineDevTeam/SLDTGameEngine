@@ -1,4 +1,4 @@
-package net.sldt_team.gameEngine.ext.gameSettings;
+package net.sldt_team.gameEngine.misc.gameSettings;
 
 public class Setting {
 

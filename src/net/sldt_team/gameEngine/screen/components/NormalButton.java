@@ -2,19 +2,19 @@ package net.sldt_team.gameEngine.screen.components;
 
 import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.screen.components.handler.ButtonHandler;
-import net.sldt_team.gameEngine.ext.gameSettings.GameSettings;
+import net.sldt_team.gameEngine.misc.gameSettings.GameSettings;
 import net.sldt_team.gameEngine.input.MouseInput;
 import net.sldt_team.gameEngine.particle.ParticleManager;
 import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
-import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.renderengine.Material;
 import net.sldt_team.gameEngine.screen.Screen;
 
 public class NormalButton implements IScreenComponent {
 
     protected String buttonName;
-    private Texture butTexture;
+    private Material butMaterial;
 
     private int buttonX;
     private int buttonY;
@@ -37,7 +37,7 @@ public class NormalButton implements IScreenComponent {
         isMouseOver = false;
         buttonWidth = width;
         buttonHeight = height;
-        butTexture = theGame.renderEngine.loadTexture("buttons/normal");
+        butMaterial = theGame.renderEngine.getMaterial("buttons/normal");
 
         parentScreen = theGame.getCurrentFrame();
         id = parentScreen.getComponentsCount();
@@ -87,7 +87,7 @@ public class NormalButton implements IScreenComponent {
      * Render Current Component
      */
     public void renderComponent(RenderEngine renderEngine, FontRenderer fontRenderer) {
-        renderEngine.bindTexture(butTexture);
+        renderEngine.bindMaterial(butMaterial);
         if (isMouseOver) {
             renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 128, 128, 128);
             if (gameSettings.isParticlesActivated) {

@@ -22,7 +22,7 @@ public class GameTextureFile {
         try {
             openGLBuffer = openGLDecode();
         } catch (IOException e) {
-            GameApplication.log.severe("Unable to decode texture file");
+            GameApplication.engineLogger.severe("Unable to decode texture file");
         }
     }
 
@@ -54,7 +54,7 @@ public class GameTextureFile {
             fileStream.close();
             return new ByteArrayInputStream(((ByteArrayOutputStream) out).toByteArray());
         } catch (IOException e) {
-            GameApplication.log.warning("Unable to decode texture file");
+            GameApplication.engineLogger.warning("Unable to decode texture file");
         }
         return null;
     }

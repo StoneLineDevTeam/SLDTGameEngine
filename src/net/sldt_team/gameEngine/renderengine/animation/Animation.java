@@ -2,9 +2,8 @@ package net.sldt_team.gameEngine.renderengine.animation;
 
 import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
-import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.renderengine.Material;
 import net.sldt_team.gameEngine.renderengine.helper.EnvironmentHelper;
-import org.lwjgl.opengl.GL11;
 
 public class Animation {
 
@@ -97,8 +96,8 @@ public class Animation {
     /**
      * Returns the current texture that is being drawn (used by animated fonts)
      */
-    public Texture getCurrentTexture(RenderEngine renderEngine) {
-        return renderEngine.loadTexture(getCurrentFrame().path);
+    public Material getCurrentTexture(RenderEngine renderEngine) {
+        return renderEngine.getMaterial(getCurrentFrame().path);
     }
 
     /**
@@ -129,14 +128,14 @@ public class Animation {
         renderEngine.addTranslationMatrix(x, y);
 
         TextureFrame frame = getCurrentFrame();
-        Texture i = renderEngine.loadTexture(frame.path);
+        Material i = renderEngine.getMaterial(frame.path);
         if (i == null) {
-            GameApplication.log.warning("Unable to render format : 'Unexpected Error Calling renderEngine.loadTexture' !");
+            GameApplication.engineLogger.warning("Unable to render animation : 'Unexpected Error Calling renderEngine.loadTexture' !");
             return;
         }
         i.setOverwriteColor(frame.color);
         i.setTextureEnvironment(textureEnv);
-        renderEngine.bindTexture(i);
+        renderEngine.bindMaterial(i);
 
         renderEngine.enableMiddleRotationScale();
         renderEngine.setScaleLevel(frame.scale);

@@ -9,7 +9,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class FontRenderer {
 
     private RenderEngine renderEngine;
-    private Texture fontTexture;
+    private Material fontMaterial;
     private Animation fontAnimation;
     private int CHAR_WIDTH = 16;
     private ColorHelper currentColor;
@@ -25,14 +25,14 @@ public class FontRenderer {
      */
     public FontRenderer(RenderEngine renderSystem, String name) {
         renderEngine = renderSystem;
-        fontTexture = renderEngine.loadTexture("fonts/" + name);
+        fontMaterial = renderEngine.getMaterial("fonts/" + name);
     }
 
     /**
      * Reloads FontRenderer using custom font name
      */
     public void reloadFontRenderer(String font) {
-        fontTexture = renderEngine.loadTexture("fonts/" + font);
+        fontMaterial = renderEngine.getMaterial("fonts/" + font);
         fontAnimation = null;
     }
 
@@ -45,7 +45,7 @@ public class FontRenderer {
             return;
         }
         fontAnimation = anim;
-        fontTexture = anim.getCurrentTexture(renderEngine);
+        fontMaterial = anim.getCurrentTexture(renderEngine);
     }
 
     /**
@@ -140,7 +140,7 @@ public class FontRenderer {
     public void updateFontAnimation() {
         if (fontAnimation != null) {
             fontAnimation.update();
-            fontTexture = fontAnimation.getCurrentTexture(renderEngine);
+            fontMaterial = fontAnimation.getCurrentTexture(renderEngine);
         }
     }
 
@@ -195,7 +195,7 @@ public class FontRenderer {
     }
 
     private void drawString(String line, float xPos, float yPos, float charWidth, float charHeight, float xGap) {
-        renderEngine.bindTexture(fontTexture);
+        renderEngine.bindMaterial(fontMaterial);
         if (isRotated) {
             glPushMatrix();
             glTranslatef(((xPos + getStringWidth(line)) / 2), ((yPos + charHeight) / 2), 0);

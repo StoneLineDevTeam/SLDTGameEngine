@@ -6,6 +6,7 @@ import net.sldt_team.gameEngine.gui.GuiButton;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
 import net.sldt_team.gameEngine.screen.Screen;
 import net.sldt_team.gameEngine.util.GuiUtilities;
+import net.sldt_team.gameEngine.util.Vector2D;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ public class Message {
 
         String[] splits = content.split("\n");
         if (splits.length > 3) {
-            GameApplication.log.warning("MessageDisplay -> Can not set content : LINE_NUMBER_EXITING_MEMORY");
+            GameApplication.engineLogger.warning("MessageDisplay -> Can not set content : LINE_NUMBER_EXITING_MEMORY");
             return;
         }
         int i = 0;
@@ -69,9 +70,11 @@ public class Message {
      * @exclude
      */
     public void init(RenderEngine renderEngine, final Screen screen) {
+        Vector2D centeredObject = GuiUtilities.getCenteredObject(512, 256);
+
         if (isConfirmation) {
-            GuiButton yes = new GuiButton("Yes", 128, 32, renderEngine.loadTexture("message/button"), (int) GuiUtilities.getCenteredObjectX(512) + 5, (int) GuiUtilities.getCenteredObjectY(256) + 200, 150, 50);
-            GuiButton no = new GuiButton("No", 128, 32, renderEngine.loadTexture("message/button"), (int) GuiUtilities.getCenteredObjectX(512) + 160, (int) GuiUtilities.getCenteredObjectY(256) + 200, 150, 50);
+            GuiButton yes = new GuiButton("Yes", 128, 32, renderEngine.getMaterial("message/button"), (int) centeredObject.getX() + 5, (int) centeredObject.getY() + 200, 150, 50);
+            GuiButton no = new GuiButton("No", 128, 32, renderEngine.getMaterial("message/button"), (int) centeredObject.getX() + 160, (int) centeredObject.getY() + 200, 150, 50);
             no.setAction(new Runnable() {
                 public void run() {
                     screen.clearDesplayedMessage();
@@ -90,7 +93,7 @@ public class Message {
             buttons.add(no);
             return;
         }
-        GuiButton ok = new GuiButton("Ok", 128, 32, renderEngine.loadTexture("message/button"), (int) GuiUtilities.getCenteredObjectX(512) + 5, (int) GuiUtilities.getCenteredObjectY(256) + 200, 150, 50);
+        GuiButton ok = new GuiButton("Ok", 128, 32, renderEngine.getMaterial("message/button"), (int) centeredObject.getX() + 5, (int) centeredObject.getY() + 200, 150, 50);
         if (yesAction != null) {
             ok.setAction(yesAction);
         } else {
@@ -118,11 +121,11 @@ public class Message {
      */
     public void setContentForLine(int id, String line) {
         if (id > 3) {
-            GameApplication.log.warning("MessageDisplay -> Can not set line " + id + " : LINE_ID_EXITING_MEMORY");
+            GameApplication.engineLogger.warning("MessageDisplay -> Can not set line " + id + " : LINE_ID_EXITING_MEMORY");
             return;
         }
         if (id < 0) {
-            GameApplication.log.warning("MessageDisplay -> Can not set line " + id + " : LINE_ID_INVALID");
+            GameApplication.engineLogger.warning("MessageDisplay -> Can not set line " + id + " : LINE_ID_INVALID");
             return;
         }
         messageContent[id] = line;

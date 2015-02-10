@@ -7,12 +7,17 @@ public class EngineConstants {
     /**
      * The version of the GameEngine
      */
-    public static final String ENGINE_VERSION = "V11";
+    public static final String ENGINE_VERSION = "V13.5";
 
     /**
      * The version of the Rendering Engine
      */
-    public static final String RENDERENGINE_VERSION = "V8";
+    public static final String RENDERENGINE_VERSION = "V8.5";
+
+    /**
+     * The version of the Sound Engine
+     */
+    public static final String SOUNDENGINE_VERSION = "V2";
 
     /**
      * Version of the binding (LWJGL)

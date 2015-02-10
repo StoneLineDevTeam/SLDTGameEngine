@@ -25,11 +25,9 @@ public class KeyboardInput {
         while (Keyboard.next()) {
             if (Keyboard.getEventKey() != Keyboard.CHAR_NONE) {
                 if (Keyboard.getEventKeyState()) {
-                    System.out.println("Key Pressed");
                     temporaryTypedChar = Keyboard.getEventCharacter();
                     theHandler.keyPressed(Keyboard.getEventCharacter(), Keyboard.getEventKey());
                 } else {
-                    System.out.println("Key Released");
                     theHandler.keyTyped(temporaryTypedChar, Keyboard.getEventKey());
                 }
             }

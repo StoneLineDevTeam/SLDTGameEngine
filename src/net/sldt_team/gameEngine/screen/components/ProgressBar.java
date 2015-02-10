@@ -2,7 +2,7 @@ package net.sldt_team.gameEngine.screen.components;
 
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
-import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.renderengine.Material;
 
 public class ProgressBar implements IScreenComponent {
 
@@ -10,7 +10,7 @@ public class ProgressBar implements IScreenComponent {
     private float compY;
     private float compWidth;
     private float compHeight;
-    private Texture compTexture;
+    private Material compMaterial;
 
     private float percents;
 
@@ -20,7 +20,7 @@ public class ProgressBar implements IScreenComponent {
         compY = y;
         compWidth = width;
         compHeight = height;
-        compTexture = renderEngine.loadTexture("components/progressBar");
+        compMaterial = renderEngine.getMaterial("components/progressBar");
     }
 
     public void setProgressPercentage(float f) {
@@ -31,7 +31,7 @@ public class ProgressBar implements IScreenComponent {
         float u1 = (percents * 256F) / 100F;
         float w = (percents * compWidth) / 100F;
 
-        renderEngine.bindTexture(compTexture);
+        renderEngine.bindMaterial(compMaterial);
         renderEngine.renderTexturedQuadWithTextureCoords(compX, compY, compWidth, compHeight, 0, 32, 256, 32);
         renderEngine.renderTexturedQuadWithTextureCoords(compX, compY, w, compHeight, 0, 0, u1, 32);
     }

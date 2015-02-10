@@ -6,13 +6,13 @@ import net.sldt_team.gameEngine.input.MouseInput;
 import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
-import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.renderengine.Material;
 import net.sldt_team.gameEngine.screen.Screen;
 
 public class NextButton implements IScreenComponent {
 
     protected String buttonName;
-    private Texture butTexture;
+    private Material butMaterial;
 
     private int buttonX;
     private int buttonY;
@@ -32,7 +32,7 @@ public class NextButton implements IScreenComponent {
         isMouseOver = false;
         buttonWidth = width;
         buttonHeight = height;
-        butTexture = theGame.renderEngine.loadTexture("buttons/next");
+        butMaterial = theGame.renderEngine.getMaterial("buttons/next");
         parentScreen = theGame.getCurrentFrame();
         id = parentScreen.getComponentsCount();
 
@@ -66,7 +66,7 @@ public class NextButton implements IScreenComponent {
     }
 
     public void renderComponent(RenderEngine renderEngine, FontRenderer fontRenderer) {
-        renderEngine.bindTexture(butTexture);
+        renderEngine.bindMaterial(butMaterial);
         if (isMouseOver) {
             renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 128, 128, 128);
         } else {

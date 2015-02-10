@@ -4,7 +4,7 @@ import net.sldt_team.gameEngine.gui.GuiButton;
 import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
-import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.renderengine.Material;
 import net.sldt_team.gameEngine.util.StringUtilities;
 import org.lwjgl.input.Mouse;
 
@@ -51,8 +51,8 @@ public class ConsoleIScreen implements IScreenComponent {
         maxCharsPerLine = width / 9;
 
         /** Gui buttons to scroll up and down */
-        Texture i = renderEngine.loadTexture("components/consoleScreen_scrollUp");
-        Texture j = renderEngine.loadTexture("components/consoleScreen_scrollDown");
+        Material i = renderEngine.getMaterial("components/consoleScreen_scrollUp");
+        Material j = renderEngine.getMaterial("components/consoleScreen_scrollDown");
         scrollUp = new GuiButton("", 128, 128, i, (x + width) + 5, (y + 5), 32, 32);
         scrollDown = new GuiButton("", 128, 128, j, (x + width) + 5, (y + height) - (32 + 5), 32, 32);
         Runnable up = new Runnable() {

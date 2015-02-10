@@ -33,6 +33,11 @@ public class ColorHelper {
     public static ColorHelper WHITE = new ColorHelper(255, 255, 255);
 
     /**
+     * The yellow color
+     */
+    public static ColorHelper YELLOW = new ColorHelper(255, 255, 0);
+
+    /**
      * Defines a new color using int-RGB
      * @param r Red-Element
      * @param g Green-Element
@@ -46,7 +51,7 @@ public class ColorHelper {
     }
 
     private float analyseColor(float colorPart) {
-        return colorPart / 255;
+        return Math.abs(colorPart / 255);
     }
 
     /**

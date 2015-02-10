@@ -61,11 +61,11 @@ public class GameDataFileEncoder {
      */
     public void loadEncodingKeyFromString(String encodingKey) {
         if ((encodingKey.length() / 2) != 16) {
-            GameApplication.log.severe("FATAL ERROR : Encoding key need to make 16 characters ; not : " + encodingKey.length() / 2);
-            GameApplication.log.severe("IF_FAILED");
+            GameApplication.engineLogger.severe("FATAL ERROR : Encoding key need to make 16 characters ; not : " + encodingKey.length() / 2);
+            GameApplication.engineLogger.severe("IF_FAILED");
             throw new GameException(new ErrorCode002());
         }
-        GameApplication.log.info("IF_JUMPED");
+        GameApplication.engineLogger.info("IF_JUMPED");
         if (!needToGenerateNewKey) {
             int i = 0;
             StringTokenizer tokenizer = new StringTokenizer(encodingKey, "-");
@@ -77,8 +77,8 @@ public class GameDataFileEncoder {
                 i++;
             }
         } else {
-            GameApplication.log.warning("WARNING : Security System is in gen mode. Security System can't load key in the current Mode.");
-            GameApplication.log.severe("FATAL ERROR : Unable to load key");
+            GameApplication.engineLogger.warning("WARNING : Security System is in gen mode. Security System can't load key in the current Mode.");
+            GameApplication.engineLogger.severe("FATAL ERROR : Unable to load key");
             throw new GameException(new ErrorCode002());
         }
     }

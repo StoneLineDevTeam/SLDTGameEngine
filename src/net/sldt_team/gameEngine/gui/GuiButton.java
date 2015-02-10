@@ -3,12 +3,12 @@ package net.sldt_team.gameEngine.gui;
 import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
-import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.renderengine.Material;
 import org.lwjgl.input.Mouse;
 
 public class GuiButton {
 
-    private Texture button;
+    private Material button;
 
     private int buttonX;
     private int buttonY;
@@ -34,7 +34,7 @@ public class GuiButton {
      * @param width   Button width
      * @param height  Button height
      */
-    public GuiButton(String str, int pixelsX, int pixelsY, Texture b, int x, int y, int width, int height) {
+    public GuiButton(String str, int pixelsX, int pixelsY, Material b, int x, int y, int width, int height) {
         button = b;
         buttonX = x;
         buttonY = y;
@@ -57,7 +57,7 @@ public class GuiButton {
      * Renders the button
      */
     public void render(RenderEngine renderEngine, FontRenderer fontRenderer) {
-        renderEngine.bindTexture(button);
+        renderEngine.bindMaterial(button);
         if (isMouseOver) {
             renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, py, px, py);
         } else {

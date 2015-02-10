@@ -1,4 +1,4 @@
-package net.sldt_team.gameEngine.ext;
+package net.sldt_team.gameEngine.misc;
 
 import net.sldt_team.gameEngine.GameApplication;
 

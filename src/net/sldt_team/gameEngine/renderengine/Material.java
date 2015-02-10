@@ -3,7 +3,7 @@ package net.sldt_team.gameEngine.renderengine;
 import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.renderengine.helper.EnvironmentHelper;
 
-public class Texture {
+public class Material {
 
     /**
      * The index of this texture in Graphic Card for easy access by GL
@@ -19,6 +19,11 @@ public class Texture {
      * The height of this texture
      */
     protected final int textureHeight;
+
+    /**
+     * Is this texture created at runtime instead of loaded from asset
+     */
+    protected final boolean isRuntimeTexture;
 
     /**
      * The overwrite color for this texture
@@ -41,12 +46,13 @@ public class Texture {
      * @param w Texture width
      * @param h Texture height
      */
-    protected Texture(int a, int w, int h) {
+    protected Material(int a, int w, int h, boolean runtime) {
         openGLIndex = a;
         textureWidth = w;
         textureHeight = h;
 
         textureEnv = EnvironmentHelper.RGB_COLOR_REPLACEMENT;
+        isRuntimeTexture = runtime;
     }
 
     /**

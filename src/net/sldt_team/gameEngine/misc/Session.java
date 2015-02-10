@@ -1,4 +1,4 @@
-package net.sldt_team.gameEngine.ext;
+package net.sldt_team.gameEngine.misc;
 
 public class Session {
 
@@ -19,14 +19,23 @@ public class Session {
         password = pass;
     }
 
+    /**
+     * Returns the user name
+     */
     public String getUserName() {
         return userName;
     }
 
+    /**
+     * Returns the session ID
+     */
     public String getSessionID() {
         return sessionID;
     }
 
+    /**
+     * Returns the password
+     */
     public String getPassword() {
         return password;
     }

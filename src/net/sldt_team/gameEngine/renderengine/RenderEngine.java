@@ -8,14 +8,18 @@ import net.sldt_team.gameEngine.exception.GameException;
 import net.sldt_team.gameEngine.renderengine.animation.Animation;
 import net.sldt_team.gameEngine.renderengine.assetSystem.Asset;
 import net.sldt_team.gameEngine.renderengine.decoders.ITextureDecoder;
+import net.sldt_team.gameEngine.renderengine.helper.TextureFormatHelper;
 import net.sldt_team.gameEngine.renderengine.helper.*;
-import net.sldt_team.gameEngine.util.FileUtilities;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +27,9 @@ import java.util.logging.Logger;
 
 public class RenderEngine {
 
-    private Map<String, Texture> textureMap;
+    private Map<String, Material> textureMap;
     private Map<String, Animation> animationMap;
+
     private ColorHelper currentColor;
     private boolean usingColor;
 
@@ -40,11 +45,11 @@ public class RenderEngine {
     private float rotationScalePointY;
     private boolean rotateScaleInMiddle = true;
 
-    private final Texture gradientTop;
-    private final Texture gradientBottom;
-    private final Texture gradientLeft;
-    private final Texture gradientRight;
-    private final Texture missingTex;
+    private final Material gradientTop;
+    private final Material gradientBottom;
+    private final Material gradientLeft;
+    private final Material gradientRight;
+    private final Material missingMat;
 
     private boolean scissoringEnabled;
     private boolean blendingEnabled;
@@ -63,25 +68,25 @@ public class RenderEngine {
      */
     protected Logger logger;
 
-    private Texture currentBoundTexture;
+    private Material currentBoundMaterial;
 
     /**
      * @exclude
      */
     public RenderEngine(IExceptionHandler handler, AssetsManager assets, Logger log) {
         assetsManager = assets;
-        textureMap = new HashMap<String, Texture>();
+        textureMap = new HashMap<String, Material>();
         animationMap = new HashMap<String, Animation>();
         exceptionHandler = handler;
         logger = log;
 
         assets.initialize(this);
 
-        gradientTop = loadTexture("renderEngine/gradients/top");
-        gradientBottom = loadTexture("renderEngine/gradients/bottom");
-        gradientLeft = loadTexture("renderEngine/gradients/left");
-        gradientRight = loadTexture("renderEngine/gradients/right");
-        missingTex = loadTexture("renderEngine/missingTex");
+        gradientTop = getMaterial("renderEngine/gradients/top");
+        gradientBottom = getMaterial("renderEngine/gradients/bottom");
+        gradientLeft = getMaterial("renderEngine/gradients/left");
+        gradientRight = getMaterial("renderEngine/gradients/right");
+        missingMat = getMaterial("renderEngine/missingTex");
 
         gradientTop.setTextureEnvironment(EnvironmentHelper.RGBA_COLOR_REPLACEMENT);
         gradientBottom.setTextureEnvironment(EnvironmentHelper.RGBA_COLOR_REPLACEMENT);
@@ -110,7 +115,7 @@ public class RenderEngine {
         currentTexHeight = textureDecoder.getTextureHeight();
         textureDecoder.clearBuffers();
         if (buffer == null){
-            GameApplication.log.severe("RENDER ENGINE : Decoder " + textureDecoder.getDecoderName() + " has failed reading stream " + stream + " !");
+            GameApplication.engineLogger.severe("RENDER ENGINE : Decoder " + textureDecoder.getDecoderName() + " has failed reading stream " + stream + " !");
         }
         stream.close();
         return buffer;
@@ -146,6 +151,71 @@ public class RenderEngine {
     public void setScaleLevel(float scaleOf) {
         scale = scaleOf;
         isScaled = true;
+    }
+
+    /**
+     * Captures a part of the screen and return a buffered image corresponding to the captured pixels
+     * NOTE : Do not call this method each frames, otherwise you may cause a memory leak
+     */
+    public BufferedImage captureScreen(int x, int y, int width, int height){
+        //Gets pixels using OpenGL
+        GL11.glReadBuffer(GL11.GL_FRONT);
+        ByteBuffer screenBuffer = BufferUtils.createByteBuffer(width * height * 4);
+        GL11.glReadPixels(x, y, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, screenBuffer);
+
+        //Create a BufferedImage from pixels
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        for(int imgY = 0; imgY < height; imgY++) {
+            for(int imgX = 0; imgX < width; imgX++) {
+                int i = imgY * width * 4 + imgX * 4;
+                int r = screenBuffer.get(i) & 0xFF;
+                int g = screenBuffer.get(i + 1) & 0xFF;
+                int b = screenBuffer.get(i + 2) & 0xFF;
+                image.setRGB(imgX, imgY, (0xFF << 24) | (r << 16) | (g << 8) | b);
+            }
+        }
+
+        //Flip image from down to up
+        AffineTransform tx = AffineTransform.getScaleInstance(1, -1);
+        tx.translate(0, -image.getHeight(null));
+        AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+        image = op.filter(image, null);
+
+        return image;
+    }
+
+    /**
+     * Creates a material from a byte array.
+     * NOTE : You'll need to handle errors yourself.
+     * NOTE_2 : Do not call this method each frames, otherwise you may cause a memory leak
+     */
+    public Material createRuntimeMaterial(String format, byte[] data) throws IOException {
+        ByteBuffer openGLTexture = mountTexture(format, new ByteArrayInputStream(data));
+        glEnable(GL_TEXTURE_2D);
+        int id = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, id);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, currentTexWidth, currentTexHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, openGLTexture);
+        glDisable(GL_TEXTURE_2D);
+        return new Material(id, currentTexWidth, currentTexHeight, true);
+    }
+
+    /**
+     * Destroys the given runtime created material.
+     * NOTE : Do not call this method each frames, otherwise you may cause a memory leak
+     */
+    public void destroyRuntimeMaterial(Material t) {
+        if (!t.isRuntimeTexture){
+            logger.warning("Tried to delete a non-runtime created texture !");
+            return;
+        }
+        glDeleteTextures(t.openGLIndex);
+        t.textureOverwriteColor = null;
+        t.setTextureEnvironment(null);
+        t.hasColorBeenOverwritten = false;
     }
 
     /**
@@ -188,15 +258,15 @@ public class RenderEngine {
     }
 
     /**
-     * Gets texture from texture path (You don't need to specify extension, the engine knows it)
+     * Returns a material from given material path (You don't need to specify extension, the engine knows it)
      */
-    public Texture loadTexture(String path) {
+    public Material getMaterial(String path) {
         String texPath = "materials/" + path;
         try {
             if (textureMap.get(texPath) != null) {
                 return textureMap.get(texPath);
             } else {
-                return missingTex;
+                return missingMat;
             }
         } catch (Exception e) {
             try {
@@ -209,9 +279,9 @@ public class RenderEngine {
     }
 
     /**
-     * Loads an animation from the given path (Don't need to specify any file extension, the engine knows it)
+     * Returns an animation from the given path (Don't need to specify any file extension, the engine knows it)
      */
-    public Animation loadAnimation(String path) {
+    public Animation getAnimation(String path) {
         if (animationMap.containsKey(path)) {
             return animationMap.get(path);
         }
@@ -270,7 +340,7 @@ public class RenderEngine {
                 exceptionHandler.handleException(new GameException(e1));
             }
         }
-        textureMap.put(name, new Texture(id, currentTexWidth, currentTexHeight));
+        textureMap.put(name, new Material(id, currentTexWidth, currentTexHeight, false));
     }
 
     /**
@@ -286,24 +356,24 @@ public class RenderEngine {
     }
 
     /**
-     * Binds a texture (args : the texture id from loadTexture int)
+     * Binds a material (args : the material from getMaterial)
      */
-    public void bindTexture(Texture texture) {
-        if (texture == null) {
-            bindMissingTexture();
+    public void bindMaterial(Material material) {
+        if (material == null) {
+            bindMissingMaterial();
             return;
         }
         usingColor = false;
         glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, texture.openGLIndex);
-        currentBoundTexture = texture;
+        glBindTexture(GL_TEXTURE_2D, material.openGLIndex);
+        currentBoundMaterial = material;
     }
 
     /**
-     * Binds missing texture (This is for MissingTexture lovers #MISSING_TEXTURE#) !!
+     * Binds missing material (This is for MissingMaterial lovers #MISSING_TEXTURE#) !!
      */
-    public void bindMissingTexture() {
-        bindTexture(missingTex);
+    public void bindMissingMaterial() {
+        bindMaterial(missingMat);
     }
 
     private void addRotationScale(float x, float y, float width, float height) {
@@ -349,11 +419,11 @@ public class RenderEngine {
      * Renders the current bound texture with texture coords (args : X-Coord, Y-Coord, Width, Height, TextureCoord X, TextureCoord Y, TextureCoord X1, TextureCoord Y1)
      */
     public void renderTexturedQuadWithTextureCoords(float x, float y, float width, float height, float u, float v, float u1, float v1) {
-        float texX = u / currentBoundTexture.textureWidth;
-        float texY = v / currentBoundTexture.textureHeight;
+        float texX = u / currentBoundMaterial.textureWidth;
+        float texY = v / currentBoundMaterial.textureHeight;
 
-        float texW = texX + (u1 / currentBoundTexture.textureWidth);
-        float texH = texY + (v1 / currentBoundTexture.textureHeight);
+        float texW = texX + (u1 / currentBoundMaterial.textureWidth);
+        float texH = texY + (v1 / currentBoundMaterial.textureHeight);
 
         if (isRotated || isScaled) {
             x = 0;
@@ -361,8 +431,8 @@ public class RenderEngine {
             addRotationScale(x, y, width, height);
         }
 
-        if (currentBoundTexture.hasColorBeenOverwritten && currentBoundTexture.textureOverwriteColor != null) {
-            switch (currentBoundTexture.textureEnv) {
+        if (currentBoundMaterial.hasColorBeenOverwritten && currentBoundMaterial.textureOverwriteColor != null) {
+            switch (currentBoundMaterial.textureEnv) {
                 case RGB_COLOR_REPLACEMENT:
                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
                     break;
@@ -370,7 +440,7 @@ public class RenderEngine {
                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
                     break;
             }
-            glColor4f(currentBoundTexture.textureOverwriteColor.getRed(), currentBoundTexture.textureOverwriteColor.getGreen(), currentBoundTexture.textureOverwriteColor.getBlue(), currentBoundTexture.textureOverwriteColor.getAlpha());
+            glColor4f(currentBoundMaterial.textureOverwriteColor.getRed(), currentBoundMaterial.textureOverwriteColor.getGreen(), currentBoundMaterial.textureOverwriteColor.getBlue(), currentBoundMaterial.textureOverwriteColor.getAlpha());
         }
         glBegin(GL_QUADS);
         {
@@ -387,9 +457,9 @@ public class RenderEngine {
             glVertex2f(x, height + y);
         }
         glEnd();
-        if (currentBoundTexture.hasColorBeenOverwritten) {
+        if (currentBoundMaterial.hasColorBeenOverwritten) {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            if (currentBoundTexture.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
+            if (currentBoundMaterial.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             }
         }
@@ -415,8 +485,8 @@ public class RenderEngine {
         if (currentColor != null && usingColor) {
             glDisable(GL_TEXTURE_2D);
             glColor4f(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), currentColor.getAlpha());
-        } else if (currentBoundTexture.hasColorBeenOverwritten && currentBoundTexture.textureOverwriteColor != null) {
-            switch (currentBoundTexture.textureEnv) {
+        } else if (currentBoundMaterial.hasColorBeenOverwritten && currentBoundMaterial.textureOverwriteColor != null) {
+            switch (currentBoundMaterial.textureEnv) {
                 case RGB_COLOR_REPLACEMENT:
                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
                     break;
@@ -424,7 +494,7 @@ public class RenderEngine {
                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
                     break;
             }
-            glColor4f(currentBoundTexture.textureOverwriteColor.getRed(), currentBoundTexture.textureOverwriteColor.getGreen(), currentBoundTexture.textureOverwriteColor.getBlue(), currentBoundTexture.textureOverwriteColor.getAlpha());
+            glColor4f(currentBoundMaterial.textureOverwriteColor.getRed(), currentBoundMaterial.textureOverwriteColor.getGreen(), currentBoundMaterial.textureOverwriteColor.getBlue(), currentBoundMaterial.textureOverwriteColor.getAlpha());
         }
         glBegin(GL_QUADS);
         {
@@ -444,9 +514,9 @@ public class RenderEngine {
         if (currentColor != null && usingColor) {
             glEnable(GL_TEXTURE_2D);
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        } else if (currentBoundTexture.hasColorBeenOverwritten) {
+        } else if (currentBoundMaterial.hasColorBeenOverwritten) {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            if (currentBoundTexture.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
+            if (currentBoundMaterial.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             }
         }
@@ -477,8 +547,8 @@ public class RenderEngine {
         if (currentColor != null && usingColor) {
             glDisable(GL_TEXTURE_2D);
             glColor4f(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), currentColor.getAlpha());
-        } else if (currentBoundTexture.hasColorBeenOverwritten && currentBoundTexture.textureOverwriteColor != null) {
-            switch (currentBoundTexture.textureEnv) {
+        } else if (currentBoundMaterial.hasColorBeenOverwritten && currentBoundMaterial.textureOverwriteColor != null) {
+            switch (currentBoundMaterial.textureEnv) {
                 case RGB_COLOR_REPLACEMENT:
                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
                     break;
@@ -486,7 +556,7 @@ public class RenderEngine {
                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
                     break;
             }
-            glColor4f(currentBoundTexture.textureOverwriteColor.getRed(), currentBoundTexture.textureOverwriteColor.getGreen(), currentBoundTexture.textureOverwriteColor.getBlue(), currentBoundTexture.textureOverwriteColor.getAlpha());
+            glColor4f(currentBoundMaterial.textureOverwriteColor.getRed(), currentBoundMaterial.textureOverwriteColor.getGreen(), currentBoundMaterial.textureOverwriteColor.getBlue(), currentBoundMaterial.textureOverwriteColor.getAlpha());
         }
         glTranslatef(x, y, 0);
 
@@ -500,9 +570,9 @@ public class RenderEngine {
         if (currentColor != null && usingColor) {
             glEnable(GL_TEXTURE_2D);
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        } else if (currentBoundTexture.hasColorBeenOverwritten) {
+        } else if (currentBoundMaterial.hasColorBeenOverwritten) {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            if (currentBoundTexture.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
+            if (currentBoundMaterial.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             }
         }
@@ -531,8 +601,8 @@ public class RenderEngine {
         if (currentColor != null && usingColor) {
             glDisable(GL_TEXTURE_2D);
             glColor4f(currentColor.getRed(), currentColor.getGreen(), currentColor.getBlue(), currentColor.getAlpha());
-        } else if (currentBoundTexture.hasColorBeenOverwritten && currentBoundTexture.textureOverwriteColor != null) {
-            switch (currentBoundTexture.textureEnv) {
+        } else if (currentBoundMaterial.hasColorBeenOverwritten && currentBoundMaterial.textureOverwriteColor != null) {
+            switch (currentBoundMaterial.textureEnv) {
                 case RGB_COLOR_REPLACEMENT:
                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
                     break;
@@ -540,7 +610,7 @@ public class RenderEngine {
                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
                     break;
             }
-            glColor4f(currentBoundTexture.textureOverwriteColor.getRed(), currentBoundTexture.textureOverwriteColor.getGreen(), currentBoundTexture.textureOverwriteColor.getBlue(), currentBoundTexture.textureOverwriteColor.getAlpha());
+            glColor4f(currentBoundMaterial.textureOverwriteColor.getRed(), currentBoundMaterial.textureOverwriteColor.getGreen(), currentBoundMaterial.textureOverwriteColor.getBlue(), currentBoundMaterial.textureOverwriteColor.getAlpha());
         }
         glBegin(GL_TRIANGLES);
         {
@@ -561,9 +631,9 @@ public class RenderEngine {
         if (currentColor != null && usingColor) {
             glEnable(GL_TEXTURE_2D);
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        } else if (currentBoundTexture.hasColorBeenOverwritten) {
+        } else if (currentBoundMaterial.hasColorBeenOverwritten) {
             glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            if (currentBoundTexture.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
+            if (currentBoundMaterial.textureEnv == EnvironmentHelper.RGBA_COLOR_REPLACEMENT) {
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             }
         }
@@ -592,19 +662,19 @@ public class RenderEngine {
             switch (side) {
                 case TOP:
                     gradientTop.setOverwriteColor(color);
-                    bindTexture(gradientTop);
+                    bindMaterial(gradientTop);
                     break;
                 case BOTTOM:
                     gradientBottom.setOverwriteColor(color);
-                    bindTexture(gradientBottom);
+                    bindMaterial(gradientBottom);
                     break;
                 case LEFT:
                     gradientLeft.setOverwriteColor(color);
-                    bindTexture(gradientLeft);
+                    bindMaterial(gradientLeft);
                     break;
                 case RIGHT:
                     gradientRight.setOverwriteColor(color);
-                    bindTexture(gradientRight);
+                    bindMaterial(gradientRight);
                     break;
             }
             renderQuad(x, y, width, height);

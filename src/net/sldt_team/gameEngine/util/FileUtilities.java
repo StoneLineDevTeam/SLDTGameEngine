@@ -18,11 +18,11 @@ public class FileUtilities {
             throws IOException {
 
         if (file.isDirectory()) {
-            System.out.println("Deleting directory " + file.getAbsolutePath());
+            GameApplication.engineLogger.info("Deleting directory " + file.getAbsolutePath());
             //directory is empty, then delete it
             if (file.list().length == 0) {
                 if (file.delete())
-                    System.out.println("Directory is deleted : " + file.getAbsolutePath());
+                    GameApplication.engineLogger.info("Directory is deleted : " + file.getAbsolutePath());
             } else {
                 //list all the directory contents
                 String files[] = file.list();
@@ -38,13 +38,13 @@ public class FileUtilities {
                 //check the directory again, if empty then delete it
                 if (file.list().length == 0) {
                     if (file.delete())
-                        System.out.println("Directory is deleted : " + file.getAbsolutePath());
+                        GameApplication.engineLogger.info("Directory is deleted : " + file.getAbsolutePath());
                 }
             }
         } else {
             //if file, then delete it
             if (file.delete())
-                System.out.println("File is deleted : " + file.getAbsolutePath());
+                GameApplication.engineLogger.info("File is deleted : " + file.getAbsolutePath());
         }
     }
 

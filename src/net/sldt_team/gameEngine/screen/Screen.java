@@ -3,11 +3,11 @@ package net.sldt_team.gameEngine.screen;
 import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.screen.components.IScreenComponent;
 import net.sldt_team.gameEngine.screen.components.QuitButton;
-import net.sldt_team.gameEngine.ext.Translator;
+import net.sldt_team.gameEngine.misc.Translator;
 import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
-import net.sldt_team.gameEngine.renderengine.Texture;
+import net.sldt_team.gameEngine.renderengine.Material;
 import net.sldt_team.gameEngine.screen.event.IComponentsEventProvider;
 import net.sldt_team.gameEngine.screen.event.IMessagesEventProvider;
 import net.sldt_team.gameEngine.screen.event.IRendersEventProvider;
@@ -25,7 +25,7 @@ public abstract class Screen {
      */
     protected GameApplication theGame;
 
-    private Texture backgroundImage;
+    private Material backgroundImage;
     private List<IScreenComponent> screenComponents;
     private final ArrayList<Runnable> messageQueue = new ArrayList<Runnable>();
 
@@ -105,7 +105,7 @@ public abstract class Screen {
      */
     public void doInit() {
         screenComponents = new ArrayList<IScreenComponent>();
-        backgroundImage = theGame.renderEngine.loadTexture("backgrounds/mainBG");
+        backgroundImage = theGame.renderEngine.getMaterial("backgrounds/mainBG");
         initScreen();
     }
 
@@ -177,6 +177,8 @@ public abstract class Screen {
      * @exclude
      */
     public void onExit() {
+        onExitingScreen();
+
         Runnable r = new Runnable() {
             public void run() {
                 for (IScreenComponent component : screenComponents) {
@@ -188,8 +190,6 @@ public abstract class Screen {
         };
         messageQueue.add(r);
         theGame = null;
-
-        onExitingScreen();
     }
 
     /**
@@ -223,7 +223,7 @@ public abstract class Screen {
             IRendersEventProvider provider = (IRendersEventProvider) this;
             provider.preRenderScreen(renderEngine, fontRenderer);
         } else {
-            renderEngine.bindTexture(backgroundImage);
+            renderEngine.bindMaterial(backgroundImage);
             renderEngine.renderQuad(10, 10, GameApplication.getScreenWidth() - 20, GameApplication.getScreenHeight() - 20);
         }
 
@@ -238,12 +238,6 @@ public abstract class Screen {
             fontRenderer.setRenderingSize(4);
             fontRenderer.setRenderingColor(ColorHelper.RED);
             fontRenderer.renderString("FPS : " + theGame.getGameFPS(), 0, 50);
-        }
-
-        if (!showCursor) {
-            Mouse.setGrabbed(true);
-        } else {
-            Mouse.setGrabbed(false);
         }
 
         if (displayedMessage != null) {

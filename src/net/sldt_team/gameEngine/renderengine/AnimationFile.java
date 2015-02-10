@@ -21,12 +21,12 @@ public class AnimationFile {
 
     protected Animation loadFile() {
         try {
-            GameApplication.log.info("Loading animation...");
+            GameApplication.engineLogger.info("Loading animation...");
             Gson gson = new GsonBuilder().create();
             AbstractAnimationFile file = gson.fromJson(new InputStreamReader(fileData), AbstractAnimationFile.class);
             TextureFrame[] frames = new TextureFrame[file.frames.length];
             if (file.frames.length == 0) {
-                GameApplication.log.severe("Failed to load animation : Animation frames must have, at least, 1 entry !");
+                GameApplication.engineLogger.severe("Failed to load animation : Animation frames must have, at least, 1 entry !");
                 return null;
             }
             for (int i = 0; i < file.frames.length; i++) {
@@ -37,14 +37,14 @@ public class AnimationFile {
                 } else {
                     frames[i] = new TextureFrame(new ColorHelper(c.r, c.g, c.b, c.a), file.frames[i].scale, file.frames[i].path, file.frames[i].id);
                 }
-                GameApplication.log.info("Frame found : " + frames[i].toString());
+                GameApplication.engineLogger.info("Frame found : " + frames[i].toString());
             }
             Animation anim = new Animation(file.interval, file.type, frames, file.usingUV, file.texEnv);
-            GameApplication.log.info("Interval is " + anim.getInterval());
-            GameApplication.log.info("Animation successfully loaded !");
+            GameApplication.engineLogger.info("Interval is " + anim.getInterval());
+            GameApplication.engineLogger.info("Animation successfully loaded !");
             return anim;
         } catch (Exception e) {
-            GameApplication.log.severe("Failed to load animation : " + e.getClass().getName() + "_" + e.getMessage());
+            GameApplication.engineLogger.severe("Failed to load animation : " + e.getClass().getName() + "_" + e.getMessage());
         }
         return null;
     }

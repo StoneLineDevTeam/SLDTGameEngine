@@ -1,81 +1,169 @@
 package net.sldt_team.gameEngine.sound;
 
+import net.sldt_team.gameEngine.GameApplication;
+import net.sldt_team.gameEngine.sound.helper.SoundStateHelper;
+import net.sldt_team.gameEngine.util.FileUtilities;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class SoundEngine {
 
-    private Map<String, File> soundsMap;
+    private Map<String, Sound> soundsMap;
     private SoundSystem system;
 
     private float globalSoundLevel;
 
+    private Sound currentBoundSound;
+
     /**
      * @exclude
      */
-    public SoundEngine(Logger log) {
-        soundsMap = new HashMap<String, File>();
-        system = new SoundSystem(log);
+    public SoundEngine() {
+        soundsMap = new HashMap<String, Sound>();
+        system = new SoundSystem();
         initSoundEngine();
     }
 
-    /**
-     * Registers a new sound for your game (args: sound name, sound file)
-     */
-    public void addSound(String name, File path) {
-        soundsMap.put(name, path);
-    }
-
     private void initSoundEngine() {
-        for (Map.Entry entry : soundsMap.entrySet()) {
-            String name = (String) entry.getKey();
-            File file = (File) entry.getValue();
-
-            system.registerNewSource(file.toString(), name);
+        File files = new File(FileUtilities.getResourcesDirectory() + File.separator + "sounds" + File.separator);
+        File[] fs = new File(FileUtilities.getResourcesDirectory() + File.separator + "sounds" + File.separator).listFiles();
+        if (fs == null){
+            GameApplication.engineLogger.info("No sounds directory found, skipping SoundEngine load...");
+            return;
         }
-        system.reloadSoundSystem();
+        loadDirectory(files);
+    }
+    private void loadDirectory(File f){
+        if (f.isDirectory()){
+            File[] files = f.listFiles();
+            if (files == null){
+                return;
+            }
+            for (File f1 : files){
+                if (f1.isDirectory()){
+                    loadDirectory(f1);
+                } else {
+                    String s2 = workPath(f1);
+                    Sound sound = new Sound(f1);
+                    EnumSoundLoadError b = system.loadSound(sound);
+                    if (b != EnumSoundLoadError.ERROR_NULL){
+                        GameApplication.engineLogger.warning("Failed to load sound, " + s2 + " : " + b.name());
+                    } else {
+                        soundsMap.put(s2, sound);
+                        GameApplication.engineLogger.info("Successfully added sound, " + s2);
+                    }
+                }
+            }
+        }
+    }
+    private String workPath(File f){
+        if (!f.isFile()){
+            GameApplication.engineLogger.warning("Tried to work a sound directory instead of a file !");
+            return null;
+        }
+        String s = f.getPath();
+        String s1 = FileUtilities.getResourcesDirectory() + File.separator + "sounds" + File.separator;
+        s = s.replace(s1, "");
+        s = s.replace(File.separatorChar, '.');
+        s = s.replace("." + FileUtilities.getFileExtension(f), "");
+        GameApplication.engineLogger.info("Worked file " + f + ", result is : '" + s + "'");
+        return s;
     }
 
     /**
      * @exclude
      */
     public void onClosingGame() {
+        for (Map.Entry e : soundsMap.entrySet()){
+            Sound sound = (Sound) e.getValue();
+            system.deleteSound(sound);
+        }
         soundsMap.clear();
-        system.closeOpenALSoundSystem();
     }
 
     /**
-     * Stop a current playing sound
+     * Returns the list of all loaded sounds
      */
-    public void stopSound(String name) {
-        system.stopSound(name);
+    public String[] getLoadedSoundList(){
+        String[] result = new String[soundsMap.size()];
+        int i = 0;
+        for (Map.Entry entry : soundsMap.entrySet()){
+            String sndName = (String) entry.getKey();
+            result[i] = sndName;
+            i++;
+        }
+        return result;
     }
 
     /**
-     * Returns whenever the given sound name is currently played
+     * Sets the global sound level multiplier and update all sounds with the new level
      */
-    public boolean isPlaying(String name) {
-        return system.isPlayingSound(name);
-    }
-
-    public void setGlobalSoundLevel(float newLvl){
+    public void setGlobalSoundLevelMultiplier(float newLvl){
         globalSoundLevel = newLvl;
         for (Map.Entry entry : soundsMap.entrySet()){
             String sndName = (String) entry.getKey();
-            if (isPlaying(sndName)){
-                system.setSoundLevel(sndName, globalSoundLevel);
+            bindSound(sndName);
+            if (isPlaying()){
+                system.setSoundLevel(currentBoundSound, system.getSoundLevel(currentBoundSound) * globalSoundLevel);
             }
         }
     }
 
     /**
-     * Start playing a sound (args: The sound name, should the sound be played in loop, an amplifier
+     * Returns the global sound level multiplier
      */
-    public void playSound(String name, boolean toLoop, int amplifier) {
-        system.playSound(name);
-        system.setSoundLevel(name, globalSoundLevel * amplifier);
-        system.setLoopingSound(name, toLoop);
+    public float getGlobalSoundLevelMultiplier(){
+        return globalSoundLevel;
+    }
+
+    /**
+     * Binds a sound to use by it's own name
+     */
+    public void bindSound(String name){
+        if (!soundsMap.containsKey(name)){
+            GameApplication.engineLogger.warning("Tried to bind an invalid sound");
+            return;
+        }
+        currentBoundSound = soundsMap.get(name);
+    }
+
+    /**
+     * Sets the state for the current sound
+     */
+    public void setState(SoundStateHelper helper){
+        switch (helper){
+            case PLAY:
+                system.setLoopingSound(currentBoundSound, false);
+                system.playSound(currentBoundSound);
+                break;
+            case PLAY_LOOP:
+                system.setLoopingSound(currentBoundSound, true);
+                system.playSound(currentBoundSound);
+                break;
+            case PAUSE:
+                system.pauseSound(currentBoundSound);
+                break;
+            case STOP:
+                system.stopSound(currentBoundSound);
+                break;
+        }
+    }
+
+    /**
+     * Sets the level for the current sound
+     */
+    public void setLevel(float newLevel){
+        if (currentBoundSound != null) {
+            system.setSoundLevel(currentBoundSound, globalSoundLevel * newLevel);
+        }
+    }
+
+    /**
+     * Returns whenever the current sound is currently played
+     */
+    public boolean isPlaying() {
+        return currentBoundSound != null && system.isPlayingSound(currentBoundSound);
     }
 }

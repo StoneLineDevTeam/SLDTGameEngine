@@ -6,26 +6,19 @@ import org.lwjgl.input.Mouse;
 public class GuiUtilities {
 
     /**
-     * Returns a float corresponding of screen's center X supporting an object width
+     * Returns a float corresponding of screen's center supporting an object width
      */
-    public static float getCenteredObjectX(float objectWidth) {
-        return (GameApplication.getScreenWidth() / 2) - (objectWidth / 2);
-    }
-
-    /**
-     * Returns a float corresponding of screen's center Y supporting an object height
-     */
-    public static float getCenteredObjectY(float objectHeight) {
-        return (GameApplication.getScreenHeight() / 2) - (objectHeight / 2);
+    public static Vector2D getCenteredObject(float objectWidth, float objectHeight) {
+        return new Vector2D((GameApplication.getScreenWidth() / 2) - (objectWidth / 2), (GameApplication.getScreenHeight() / 2) - (objectHeight / 2));
     }
 
     /**
      * Returns an int array corresponding to X and Y of your cursor
      */
-    public static int[] getMousePosition(){
+    public static Vector2D getMousePosition(){
         int x = Mouse.getX();
         int y = GameApplication.getScreenHeight() - Mouse.getY();
-        return new int[]{x, y};
+        return new Vector2D(x, y);
     }
 
     /**

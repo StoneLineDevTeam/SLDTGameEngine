@@ -42,15 +42,15 @@ public class ZipFileUtilities {
                 zipEntry = zipInputStream.getNextEntry();
             }
         } catch (FileNotFoundException ex) {
-            GameApplication.log.log(Level.WARNING, null, ex);
+            GameApplication.engineLogger.log(Level.WARNING, null, ex);
         } catch (IOException e) {
-            GameApplication.log.log(Level.WARNING, null, e);
+            GameApplication.engineLogger.log(Level.WARNING, null, e);
         }
         try {
             assert zipInputStream != null;
             zipInputStream.close();
         } catch (IOException ex) {
-            GameApplication.log.log(Level.WARNING, null, ex);
+            GameApplication.engineLogger.log(Level.WARNING, null, ex);
         }
         return fileList;
     }
