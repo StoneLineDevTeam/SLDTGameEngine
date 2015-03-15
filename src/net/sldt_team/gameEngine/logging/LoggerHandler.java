@@ -20,6 +20,9 @@ public class LoggerHandler extends Handler {
     }
 
     public void publish(LogRecord record) {
+        if (!theGame.isConsoleActivated){
+            return;
+        }
         Date today = new Date();
         String date = format.format(today);
         String logName = "[" + date + " - " + record.getLoggerName() + "]";

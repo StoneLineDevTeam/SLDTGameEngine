@@ -11,12 +11,12 @@ import org.lwjgl.input.Keyboard;
 
 public class TextField implements IScreenComponent {
 
-    private int areaX;
-    private int areaY;
-    private int areaWidth;
-    private int areaHeight;
-    private boolean hasFocus = false;
-    private String text = "";
+    protected int areaX;
+    protected int areaY;
+    protected int areaWidth;
+    protected int areaHeight;
+    protected boolean hasFocus = false;
+    protected String text = "";
 
     private int tick;
     private boolean drawCursor;
@@ -45,7 +45,7 @@ public class TextField implements IScreenComponent {
         areaWidth = width;
         areaHeight = height;
 
-        input = new KeyboardInput(new TextFieldHandler());
+        input = new KeyboardInput(new TextFieldHandler(this));
         input2 = new MouseInput(new TextFieldFocusHandler(width, height, this));
     }
 
@@ -85,7 +85,7 @@ public class TextField implements IScreenComponent {
         fontRenderer.renderString(text, areaX + 10, areaY + 10);
         if (drawCursor && hasFocus) {
             renderEngine.bindColor(ColorHelper.BLACK);
-            renderEngine.renderQuad(areaX + fontRenderer.getStringWidth(text) + 25F, areaY + 10, 5F, areaHeight - 20);
+            renderEngine.renderQuad(areaX + fontRenderer.getStringWidth(text), areaY + 10, 5F, areaHeight - 20);
         }
     }
 
@@ -108,7 +108,7 @@ public class TextField implements IScreenComponent {
         text = handler.text;
 
         tick++;
-        if (tick >= 500) {
+        if (tick >= 20) {
             drawCursor = !drawCursor;
             tick = 0;
         }

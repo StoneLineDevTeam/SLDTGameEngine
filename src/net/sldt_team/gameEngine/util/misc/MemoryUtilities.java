@@ -1,4 +1,4 @@
-package net.sldt_team.gameEngine.util;
+package net.sldt_team.gameEngine.util.misc;
 
 public class MemoryUtilities {
 

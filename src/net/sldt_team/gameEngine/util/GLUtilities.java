@@ -7,6 +7,9 @@ import org.lwjgl.opengl.GL20;
 
 import java.nio.IntBuffer;
 
+/**
+ * Warning, this class uses OpenGL context
+ */
 public class GLUtilities {
 
     /**
@@ -14,13 +17,6 @@ public class GLUtilities {
      */
     public static String getGLVersion() {
         return GL11.glGetString(GL11.GL_VERSION);
-    }
-
-    /**
-     * Returns GL's max supported verion of GLSL (GL Shading Language)
-     */
-    public static String getGLSLVersion() {
-        return GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION);
     }
 
     /**

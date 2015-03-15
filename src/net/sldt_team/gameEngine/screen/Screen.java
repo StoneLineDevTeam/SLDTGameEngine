@@ -13,7 +13,6 @@ import net.sldt_team.gameEngine.screen.event.IMessagesEventProvider;
 import net.sldt_team.gameEngine.screen.event.IRendersEventProvider;
 import net.sldt_team.gameEngine.screen.message.Message;
 import net.sldt_team.gameEngine.screen.message.MessageType;
-import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -219,12 +218,14 @@ public abstract class Screen {
      * @exclude
      */
     public void drawWindow(RenderEngine renderEngine, FontRenderer fontRenderer) {
-        if (this instanceof IRendersEventProvider) {
-            IRendersEventProvider provider = (IRendersEventProvider) this;
-            provider.preRenderScreen(renderEngine, fontRenderer);
-        } else {
-            renderEngine.bindMaterial(backgroundImage);
-            renderEngine.renderQuad(10, 10, GameApplication.getScreenWidth() - 20, GameApplication.getScreenHeight() - 20);
+        if (!(this instanceof SceneScreen)) {
+            if (this instanceof IRendersEventProvider) {
+                IRendersEventProvider provider = (IRendersEventProvider) this;
+                provider.preRenderScreen(renderEngine, fontRenderer);
+            } else {
+                renderEngine.bindMaterial(backgroundImage);
+                renderEngine.renderQuad(10, 10, GameApplication.getScreenWidth() - 20, GameApplication.getScreenHeight() - 20);
+            }
         }
 
         renderScreen(renderEngine, fontRenderer);
@@ -244,9 +245,11 @@ public abstract class Screen {
             displayedMessage.renderMessage(renderEngine, fontRenderer);
         }
 
-        if (this instanceof IRendersEventProvider) {
-            IRendersEventProvider provider = (IRendersEventProvider) this;
-            provider.postRenderScreen(renderEngine, fontRenderer);
+        if (!(this instanceof SceneScreen)) {
+            if (this instanceof IRendersEventProvider) {
+                IRendersEventProvider provider = (IRendersEventProvider) this;
+                provider.postRenderScreen(renderEngine, fontRenderer);
+            }
         }
     }
 

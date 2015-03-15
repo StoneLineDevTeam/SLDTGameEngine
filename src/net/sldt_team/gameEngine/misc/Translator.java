@@ -17,9 +17,7 @@ public class Translator {
     public static Translator instance;
 
     /**
-     * Initializes the Translator
-     *
-     * @param langName langName (example: fr, en, english, french, ...)
+     * @exclude
      */
     public Translator(String langName) {
         langFileName = langName;
@@ -49,12 +47,25 @@ public class Translator {
 
     private void loadLanguage() {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(new File(GameApplication.getGameDir() + File.separator + "resources" + File.separator + "lang" + File.separator + langFileName + ".txt")));
+            BufferedReader reader = new BufferedReader(new FileReader(new File(GameApplication.getGameDir() + File.separator + "resources" + File.separator + "lang" + File.separator + langFileName + ".glf")));
 
-            String current;
-            while ((current = reader.readLine()) != null) {
+            String cur;
+            while ((cur = reader.readLine()) != null) {
+                if (cur.equals("")){
+                    continue;
+                }
+
+                String current = "";
+
+                String[] var = cur.split("\\|");
+                for (String s : var) {
+                    int i = Integer.parseInt(s);
+                    char c = (char) i;
+                    current += c;
+                }
+
                 String[] vars = current.split("=");
-                if (vars.length == 1) {
+                if (vars.length <= 1) {
                     continue;
                 }
                 String var0 = vars[0];

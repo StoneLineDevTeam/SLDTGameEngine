@@ -5,13 +5,13 @@ import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
 import net.sldt_team.gameEngine.renderengine.Material;
-import net.sldt_team.gameEngine.util.StringUtilities;
+import net.sldt_team.gameEngine.util.misc.StringUtilities;
 import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConsoleIScreen implements IScreenComponent {
+public class ConsoleScreen implements IScreenComponent {
 
     private int areaX;
     private int areaY;
@@ -40,7 +40,7 @@ public class ConsoleIScreen implements IScreenComponent {
      * @param height Height
      * @param renderEngine The rendering engine
      */
-    public ConsoleIScreen(int x, int y, int width, int height, RenderEngine renderEngine) {
+    public ConsoleScreen(int x, int y, int width, int height, RenderEngine renderEngine) {
         areaX = x;
         areaY = y;
         areaWidth = width;
@@ -84,6 +84,8 @@ public class ConsoleIScreen implements IScreenComponent {
     }
 
     public void renderComponent(RenderEngine renderEngine, FontRenderer fontRenderer) {
+        checkWheelScroll();
+
         renderEngine.bindColor(ColorHelper.WHITE);
         renderEngine.renderQuad(areaX, areaY, areaWidth, areaHeight);
         fontRenderer.setRenderingColor(ColorHelper.BLACK);
@@ -106,8 +108,6 @@ public class ConsoleIScreen implements IScreenComponent {
 
         scrollUp.render(renderEngine, fontRenderer);
         scrollDown.render(renderEngine, fontRenderer);
-
-        checkWheelScroll();
     }
 
     public void updateComponent() {
@@ -120,16 +120,11 @@ public class ConsoleIScreen implements IScreenComponent {
     }
 
     private void checkWheelScroll() {
-        if (messagesNumber <= maxLines) {
-            return;
-        }
         int i = Mouse.getDWheel();
         if (i < 0) {
-            //System.out.println("scrollUp();");
             scrollUp();
         }
         if (i > 0) {
-            //System.out.println("scrollDown();");
             scrollDown();
         }
     }
@@ -165,7 +160,7 @@ public class ConsoleIScreen implements IScreenComponent {
      */
     public void addLine(String line) {
         if (line.length() > maxCharsPerLine) {
-            List<String> list = StringUtilities.stringWarp(line, maxCharsPerLine);
+            List<String> list = StringUtilities.warp(line, maxCharsPerLine);
             areaContent.addAll(list);
             messagesNumber += list.size();
         } else {

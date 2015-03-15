@@ -410,7 +410,10 @@ public class RenderEngine {
         translationMatrixAdded = true;
     }
 
-    private void removeTranslationMatrix(){
+    /**
+     * Removes the current translation matrix
+     */
+    public void removeTranslationMatrix(){
         glPopMatrix();
         translationMatrixAdded = false;
     }
@@ -465,10 +468,9 @@ public class RenderEngine {
         }
         if (isRotated || isScaled) {
             resetRotationScale();
-        }
-
-        if (translationMatrixAdded) {
-            removeTranslationMatrix();
+            if (translationMatrixAdded) {
+                removeTranslationMatrix();
+            }
         }
     }
 
@@ -522,10 +524,9 @@ public class RenderEngine {
         }
         if (isRotated || isScaled) {
             resetRotationScale();
-        }
-
-        if (translationMatrixAdded) {
-            removeTranslationMatrix();
+            if (translationMatrixAdded) {
+                removeTranslationMatrix();
+            }
         }
     }
 
@@ -639,10 +640,9 @@ public class RenderEngine {
         }
         if (isRotated || isScaled) {
             resetRotationScale();
-        }
-
-        if (translationMatrixAdded) {
-            removeTranslationMatrix();
+            if (translationMatrixAdded) {
+                removeTranslationMatrix();
+            }
         }
     }
 

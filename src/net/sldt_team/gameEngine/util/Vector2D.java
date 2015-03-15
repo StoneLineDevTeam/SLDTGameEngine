@@ -59,8 +59,8 @@ public class Vector2D {
         yCoord *= vec.yCoord;
     }
 
-    public void set(Vector2D vec){
-        xCoord = vec.xCoord;
-        yCoord = vec.yCoord;
+    public void set(double x, double y){
+        xCoord = x;
+        yCoord = y;
     }
 }

@@ -15,9 +15,7 @@ import net.sldt_team.gameEngine.network.client.IClientEventHandler;
 import net.sldt_team.gameEngine.network.client.NetworkManagerClient;
 import net.sldt_team.gameEngine.network.server.NetworkManagerServer;
 import net.sldt_team.gameEngine.network.server.IServerEventHandler;
-import net.sldt_team.gameEngine.particle.ParticleManager;
-import net.sldt_team.gameEngine.phys.PhysicsWorld;
-import net.sldt_team.gameEngine.phys.IPhysicsEngine;
+import net.sldt_team.gameEngine.particle.ParticleEngine;
 import net.sldt_team.gameEngine.renderengine.*;
 import net.sldt_team.gameEngine.renderengine.assetSystem.AssetType;
 import net.sldt_team.gameEngine.renderengine.decoders.GTFTextureDecoder;
@@ -42,6 +40,7 @@ import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,7 +60,7 @@ public abstract class GameApplication implements Runnable {
     /**
      * The particle engine
      */
-    public ParticleManager particleManager;
+    public ParticleEngine particleEngine;
 
     /**
      * The player session
@@ -112,10 +111,9 @@ public abstract class GameApplication implements Runnable {
     public NetworkManagerClient clientManager;
 
     /**
-     * The physics world
-     * NOTE : This will be null when your game isn't using physics.
+     * Is the console activated (true when a program arg is equal to -console
      */
-    public PhysicsWorld physicsWorld;
+    public boolean isConsoleActivated;
 
     //Display settings
     private static boolean isWindowed = true;
@@ -161,8 +159,6 @@ public abstract class GameApplication implements Runnable {
     private long curTime;
     //Is this game a network game ?
     private boolean isNetworkingGame;
-    //Is this game using physics ?
-    private boolean isPhysicsGame;
 
     /**
      * Initializes a new Game App
@@ -174,8 +170,11 @@ public abstract class GameApplication implements Runnable {
      * @param exhandler  How the game should handles exception thrown in the main thread
      * @param name       The name of the game to display on application's title bar
      * @param version    The game version (use getGameVersion() to get it)
+     * @param logging    Should the game display all logging and messages ?
      */
-    public GameApplication(String loggerName, Session session, float timerPower, String dirName, IExceptionHandler exhandler, String name, String version) {
+    public GameApplication(String loggerName, Session session, float timerPower, String dirName, IExceptionHandler exhandler, String name, String version, boolean logging) {
+        isConsoleActivated = logging;
+
         gameLogger = Logger.getLogger(loggerName);
         engineLogger = Logger.getLogger("SLDT's GameEngine");
 
@@ -192,12 +191,16 @@ public abstract class GameApplication implements Runnable {
         handler.setFormatter(new ConsoleHandlerFormator());
 
         gameLogger.setUseParentHandlers(false);
-        gameLogger.addHandler(handler);
-        gameLogger.addHandler(new LoggerHandler(this));
+        if (isConsoleActivated) {
+            gameLogger.addHandler(handler);
+            gameLogger.addHandler(new LoggerHandler(this));
+        }
 
         engineLogger.setUseParentHandlers(false);
-        engineLogger.addHandler(handler);
-        engineLogger.addHandler(new LoggerHandler(this));
+        if (isConsoleActivated) {
+            engineLogger.addHandler(handler);
+            engineLogger.addHandler(new LoggerHandler(this));
+        }
 
         engineLogger.info("GameEngine " + EngineConstants.ENGINE_VERSION);
         engineLogger.info("RenderEngine " + EngineConstants.RENDERENGINE_VERSION);
@@ -250,14 +253,6 @@ public abstract class GameApplication implements Runnable {
         if (clientEventHandler != null) {
             clientManager = new NetworkManagerClient(this, clientEventHandler);
         }
-    }
-
-    /**
-     * Sets this game to be using physics
-     */
-    protected void setPhysicsGame(int maxPhysObj, IPhysicsEngine physLib){
-        isPhysicsGame = true;
-        physicsWorld = new PhysicsWorld(maxPhysObj, physLib);
     }
 
     /**
@@ -341,10 +336,11 @@ public abstract class GameApplication implements Runnable {
      */
     public void updateGameDisplay(AppSettings settings) {
         try {
-            isWindowed = (Boolean) settings.getWindowSettings().get("SLDT_WINDOW_FULLSCREEN");
-            isWindowed1 = (Boolean) settings.getWindowSettings().get("SLDT_WINDOW_FULLSCREEN");
-            sizeX = (Integer) settings.getWindowSettings().get("SLDT_WINDOW_WIDTH");
-            sizeY = (Integer) settings.getWindowSettings().get("SLDT_WINDOW_HEIGHT");
+            Map<String, Object> map = settings.getWindowSettings();
+            isWindowed = (Boolean) map.get("SLDT_WINDOW_FULLSCREEN");
+            isWindowed1 = (Boolean) map.get("SLDT_WINDOW_FULLSCREEN");
+            sizeX = (Integer) map.get("SLDT_WINDOW_WIDTH");
+            sizeY = (Integer) map.get("SLDT_WINDOW_HEIGHT");
             refreshOpenGLDisplay();
         } catch (LWJGLException e) {
             onGameCrash(e);
@@ -390,10 +386,11 @@ public abstract class GameApplication implements Runnable {
      * settings are the default window settings like resolution and fullscreen boolean)
      */
     public static void setupThread(GameApplication game, String name, AppSettings settings) {
-        isWindowed = (Boolean) settings.getWindowSettings().get("SLDT_WINDOW_FULLSCREEN");
-        isWindowed1 = (Boolean) settings.getWindowSettings().get("SLDT_WINDOW_FULLSCREEN");
-        sizeX = (Integer) settings.getWindowSettings().get("SLDT_WINDOW_WIDTH");
-        sizeY = (Integer) settings.getWindowSettings().get("SLDT_WINDOW_HEIGHT");
+        Map<String, Object> map = settings.getWindowSettings();
+        isWindowed = (Boolean) map.get("SLDT_WINDOW_FULLSCREEN");
+        isWindowed1 = (Boolean) map.get("SLDT_WINDOW_FULLSCREEN");
+        sizeX = (Integer) map.get("SLDT_WINDOW_WIDTH");
+        sizeY = (Integer) map.get("SLDT_WINDOW_HEIGHT");
         Thread thread = new Thread(game, name + " Main - Thread");
         thread.setPriority(10);
         thread.start();
@@ -448,7 +445,7 @@ public abstract class GameApplication implements Runnable {
         fontRenderer = new FontRenderer(renderEngine, fontName);
         soundEngine = new SoundEngine();
         background = "backgrounds/sldtBG";
-        particleManager = new ParticleManager();
+        particleEngine = new ParticleEngine();
         gameSettings.loadSettings();
     }
     private static File getAppDir(String par0Str) {
@@ -559,7 +556,7 @@ public abstract class GameApplication implements Runnable {
             }
         }
 
-        particleManager.doUpdate();
+        particleEngine.doUpdate();
 
         updateGameOverlay();
 
@@ -568,10 +565,6 @@ public abstract class GameApplication implements Runnable {
                 r.run();
             }
             syncedRunList.clear();
-        }
-
-        if (isPhysicsGame && physicsWorld != null){
-            physicsWorld.updatePhysWorld();
         }
     }
     private void render() {
@@ -616,7 +609,7 @@ public abstract class GameApplication implements Runnable {
             fontRenderer.renderString("Loading...", 20, 20);
         }
 
-        particleManager.doRender(renderEngine, fontRenderer);
+        particleEngine.doRender(renderEngine, fontRenderer);
 
         renderGameOverlay();
     }

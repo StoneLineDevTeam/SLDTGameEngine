@@ -2,6 +2,8 @@ package net.sldt_team.gameEngine.util;
 
 import net.sldt_team.gameEngine.exception.GameException;
 import net.sldt_team.gameEngine.exception.code.ErrorCode003;
+import net.sldt_team.gameEngine.screen.model.Quad;
+import net.sldt_team.gameEngine.util.misc.EnumCollisionSide;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,10 +109,60 @@ public class MathUtilities {
         return (float)(d % 1);
     }
 
-    public static boolean isPowerOfTwo (int x) {
+    /**
+     * Is the given number a power of two
+     */
+    public static boolean isPowerOfTwo(int x) {
         while (((x % 2) == 0) && x > 1) {
             x /= 2;
         }
         return (x == 1);
+    }
+
+    /**
+     * Tests the collision between two quads (vectors are absolute positions of objects and quads are there collision meshes
+     */
+    public static EnumCollisionSide testCollisionBetweenQuads(Vector2D objPos, Vector2D obj1Pos, Quad objCollideMesh, Quad obj1CollideMesh){
+        float x = (float) (objPos.getX() + objCollideMesh.quadX);
+        float y = (float) (objPos.getY() + objCollideMesh.quadY);
+
+        float x1 = (float) (obj1Pos.getX() + obj1CollideMesh.quadX);
+        float y1 = (float) (obj1Pos.getY() + obj1CollideMesh.quadY);
+
+        float quadCenterX = (x + (objCollideMesh.quadWidth / 2));
+        float quadCenterY = (y + (objCollideMesh.quadHeight / 2));
+
+        float quad1CenterX = (x1 + (obj1CollideMesh.quadWidth / 2));
+        float quad1CenterY = (y1 + (obj1CollideMesh.quadHeight / 2));
+
+        float w = (float) (0.5 * (objCollideMesh.quadWidth + obj1CollideMesh.quadWidth));
+        float h = (float) (0.5 * (objCollideMesh.quadHeight + obj1CollideMesh.quadHeight));
+        float dx = quadCenterX - quad1CenterX;
+        float dy = quadCenterY - quad1CenterY;
+
+        if (Math.abs(dx) <= w && Math.abs(dy) <= h) {
+            /* collision! */
+            float wy = w * dy;
+            float hx = h * dx;
+
+            if (wy > hx) {
+                if (wy > -hx) {
+                    /* collision at the bottom */
+                    return EnumCollisionSide.SIDE_BOTTOM;
+                } else {
+                    /* on the left */
+                    return EnumCollisionSide.SIDE_LEFT;
+                }
+            } else {
+                if (wy > -hx) {
+                    /* on the right */
+                    return EnumCollisionSide.SIDE_RIGHT;
+                } else {
+                    /* at the top */
+                    return EnumCollisionSide.SIDE_TOP;
+                }
+            }
+        }
+        return null;
     }
 }

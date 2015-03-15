@@ -11,13 +11,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Random;
 
-public class ParticleManager {
+public class ParticleEngine {
     private Particle[] particlesMap;
 
     /**
      * @exclude
      */
-    public ParticleManager() {
+    public ParticleEngine() {
         particlesMap = new Particle[256];
     }
 

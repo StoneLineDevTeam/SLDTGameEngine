@@ -1,6 +1,7 @@
 package net.sldt_team.gameEngine.screen.components.handler;
 
 import net.sldt_team.gameEngine.input.keyboard.IKeyboardHandler;
+import net.sldt_team.gameEngine.screen.components.TextField;
 import org.lwjgl.input.Keyboard;
 
 public class TextFieldHandler implements IKeyboardHandler {
@@ -8,7 +9,16 @@ public class TextFieldHandler implements IKeyboardHandler {
     private boolean isUpperCase;
     public String text = "";
 
+    private TextField theTextField;
+
+    public TextFieldHandler(TextField field){
+        theTextField = field;
+    }
+
     public void keyTyped(char c, int key) {
+        if (!theTextField.isMouseInside()){
+            return;
+        }
         if (key == Keyboard.KEY_BACK) {
             String txt = text;
             if (txt.length() > 0) {

@@ -4,7 +4,7 @@ import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.renderengine.assetSystem.Asset;
 import net.sldt_team.gameEngine.renderengine.helper.TextureFormatHelper;
 import net.sldt_team.gameEngine.util.MathUtilities;
-import net.sldt_team.gameEngine.util.ZipFileUtilities;
+import net.sldt_team.gameEngine.util.misc.ZipUtilities;
 import net.sldt_team.gameEngine.util.FileUtilities;
 import net.sldt_team.gameEngine.exception.GameException;
 import net.sldt_team.gameEngine.exception.code.ErrorCode005;
@@ -126,7 +126,7 @@ public class AssetsManager {
 
     private void loadAssetFileAsZIP() {
         renderEngine.logger.info("ASSETS LOADER : Extracting game assets...");
-        ArrayList<String[]> var = ZipFileUtilities.getFiles(assetFile.toString());
+        ArrayList<String[]> var = ZipUtilities.getFiles(assetFile.toString());
         ArrayList<String> list = new ArrayList<String>();
         ArrayList<File> list1 = new ArrayList<File>();
         for (String[] var1 : var) {
@@ -143,7 +143,7 @@ public class AssetsManager {
 
                 File f1 = new File(GameApplication.getGameDir() + File.separator + "assetCache" + File.separator + s);
                 if (!f1.isDirectory())
-                    ZipFileUtilities.extractTo(assetFile.toString(), s, GameApplication.getGameDir() + File.separator + "assetCache" + File.separator);
+                    ZipUtilities.extractTo(assetFile.toString(), s, GameApplication.getGameDir() + File.separator + "assetCache" + File.separator);
 
                 list1.add(new File(GameApplication.getGameDir() + File.separator + "assetCache" + File.separator + s1));
             } catch (IOException e) {
@@ -159,7 +159,7 @@ public class AssetsManager {
                 ByteArrayInputStream stream = new ByteArrayInputStream(getAsset("materials/backgrounds/sldtBG.png").assetData);
                 String s = (FileUtilities.getMD5Checksum(stream));
                 stream.close();
-                if (!s.equals("d59a49000715febb4560af1a4d3f0f45")) {
+                if (!s.equals("d59a49000715febb4560af1a4d3f0f45") && !s.equals("8aa8a9bfdf85bc1bcdebb944a24a6d9f")) {
                     throw new GameException(new ErrorCode005());
                 }
             } catch (Exception e) {
@@ -214,7 +214,7 @@ public class AssetsManager {
 
     private void loadZIP(File assetFile) {
         renderEngine.logger.info("ASSETS LOADER : Extracting game assets...");
-        ArrayList<String[]> var = ZipFileUtilities.getFiles(assetFile.toString());
+        ArrayList<String[]> var = ZipUtilities.getFiles(assetFile.toString());
         ArrayList<String> list = new ArrayList<String>();
         ArrayList<File> list1 = new ArrayList<File>();
         for (String[] var1 : var) {
@@ -231,7 +231,7 @@ public class AssetsManager {
 
                 File f1 = new File(GameApplication.getGameDir() + File.separator + "assetCache" + File.separator + s);
                 if (!f1.isDirectory())
-                    ZipFileUtilities.extractTo(assetFile.toString(), s, GameApplication.getGameDir() + File.separator + "assetCache" + File.separator);
+                    ZipUtilities.extractTo(assetFile.toString(), s, GameApplication.getGameDir() + File.separator + "assetCache" + File.separator);
 
                 list1.add(new File(GameApplication.getGameDir() + File.separator + "assetCache" + File.separator + s1));
             } catch (IOException e) {
@@ -247,7 +247,7 @@ public class AssetsManager {
                 ByteArrayInputStream stream = new ByteArrayInputStream(getAsset("materials/backgrounds/sldtBG.png").assetData);
                 String s = (FileUtilities.getMD5Checksum(stream));
                 stream.close();
-                if (!s.equals("d59a49000715febb4560af1a4d3f0f45")) {
+                if (!s.equals("d59a49000715febb4560af1a4d3f0f45") && !s.equals("8aa8a9bfdf85bc1bcdebb944a24a6d9f")) {
                     throw new GameException(new ErrorCode005());
                 }
             } catch (Exception e) {

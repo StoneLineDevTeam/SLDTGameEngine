@@ -141,8 +141,6 @@ public class SoundSystem {
         alListener(AL_VELOCITY, listenerVel);
         alListener(AL_ORIENTATION, listenerOri);
 
-        System.out.println(sound.buffer);
-        System.out.println(sound.source);
         return getALErrorAsErrorEnum(alGetError());
     }
 

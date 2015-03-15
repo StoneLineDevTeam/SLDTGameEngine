@@ -1,4 +1,4 @@
-package net.sldt_team.gameEngine.util;
+package net.sldt_team.gameEngine.util.misc;
 
 import net.sldt_team.gameEngine.GameApplication;
 
@@ -16,7 +16,7 @@ import java.util.zip.ZipInputStream;
 /**
  * Functions for reading a zip file
  */
-public class ZipFileUtilities {
+public class ZipUtilities {
 
     /**
      * Returns a list of files contained in the given archive (args: archive ZIP path)

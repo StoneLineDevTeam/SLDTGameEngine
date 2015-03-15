@@ -1,4 +1,4 @@
-package net.sldt_team.gameEngine.phys;
+package net.sldt_team.gameEngine.util.misc;
 
 public enum EnumCollisionSide {
     SIDE_LEFT,

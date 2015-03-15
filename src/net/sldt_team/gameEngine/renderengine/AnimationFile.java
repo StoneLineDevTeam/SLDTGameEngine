@@ -37,10 +37,8 @@ public class AnimationFile {
                 } else {
                     frames[i] = new TextureFrame(new ColorHelper(c.r, c.g, c.b, c.a), file.frames[i].scale, file.frames[i].path, file.frames[i].id);
                 }
-                GameApplication.engineLogger.info("Frame found : " + frames[i].toString());
             }
             Animation anim = new Animation(file.interval, file.type, frames, file.usingUV, file.texEnv);
-            GameApplication.engineLogger.info("Interval is " + anim.getInterval());
             GameApplication.engineLogger.info("Animation successfully loaded !");
             return anim;
         } catch (Exception e) {

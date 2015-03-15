@@ -4,7 +4,7 @@ import net.sldt_team.gameEngine.GameApplication;
 import net.sldt_team.gameEngine.screen.components.handler.ButtonHandler;
 import net.sldt_team.gameEngine.misc.gameSettings.GameSettings;
 import net.sldt_team.gameEngine.input.MouseInput;
-import net.sldt_team.gameEngine.particle.ParticleManager;
+import net.sldt_team.gameEngine.particle.ParticleEngine;
 import net.sldt_team.gameEngine.renderengine.helper.ColorHelper;
 import net.sldt_team.gameEngine.renderengine.FontRenderer;
 import net.sldt_team.gameEngine.renderengine.RenderEngine;
@@ -26,7 +26,7 @@ public class NormalButton implements IScreenComponent {
     private int id;
 
     private GameSettings gameSettings;
-    private ParticleManager particleManager;
+    private ParticleEngine particleEngine;
 
     protected MouseInput input;
 
@@ -43,7 +43,7 @@ public class NormalButton implements IScreenComponent {
         id = parentScreen.getComponentsCount();
 
         gameSettings = theGame.gameSettings;
-        particleManager = theGame.particleManager;
+        particleEngine = theGame.particleEngine;
 
         input = new MouseInput(new ButtonHandler(width, height, this));
     }
@@ -91,8 +91,8 @@ public class NormalButton implements IScreenComponent {
         if (isMouseOver) {
             renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 128, 128, 128);
             if (gameSettings.isParticlesActivated) {
-                particleManager.spawnParticle("button", buttonX - 16, (buttonY + buttonHeight / 2) - 16, buttonX - 16, (buttonY + buttonHeight / 2) - 16, 1, null);
-                particleManager.spawnParticle("button", (buttonX + buttonWidth) + 16, (buttonY + buttonHeight / 2) - 16, (buttonX + buttonWidth) + 16, (buttonY + buttonHeight / 2) - 16, 1, null);
+                particleEngine.spawnParticle("button", buttonX - 16, (buttonY + buttonHeight / 2) - 16, buttonX - 16, (buttonY + buttonHeight / 2) - 16, 1, null);
+                particleEngine.spawnParticle("button", (buttonX + buttonWidth) + 16, (buttonY + buttonHeight / 2) - 16, (buttonX + buttonWidth) + 16, (buttonY + buttonHeight / 2) - 16, 1, null);
             }
         } else {
             renderEngine.renderTexturedQuadWithTextureCoords(buttonX, buttonY, buttonWidth, buttonHeight, 0, 0, 128, 128);

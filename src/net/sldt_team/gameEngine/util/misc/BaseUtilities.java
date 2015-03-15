@@ -1,4 +1,6 @@
-package net.sldt_team.gameEngine.util;
+package net.sldt_team.gameEngine.util.misc;
+
+import net.sldt_team.gameEngine.util.MathUtilities;
 
 public class BaseUtilities {
 
@@ -12,6 +14,6 @@ public class BaseUtilities {
             quotient = MathUtilities.getIntegerPart(quotient / BASE_2_ENCODING_DIVISOR);
             encodedNumber += rest;
         }
-        return StringUtilities.stringReverse(encodedNumber);
+        return StringUtilities.reverse(encodedNumber);
     }
 }

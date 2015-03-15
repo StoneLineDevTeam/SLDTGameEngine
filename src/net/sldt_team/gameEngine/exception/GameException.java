@@ -67,10 +67,18 @@ public class GameException extends RuntimeException {
     }
 
     /**
+     * Returns the error code of this exception
+     */
+    public IGameError getErrorCode(){
+        return errorCode;
+    }
+
+    /**
      * Returns exception content as String
      */
     public List<String> getJVMException() {
         List<String> list = new ArrayList<String>();
+        list.add(exception.getClass().getName());
         for (StackTraceElement element : getStackTrace()) {
             list.add("\tat " + element);
         }
