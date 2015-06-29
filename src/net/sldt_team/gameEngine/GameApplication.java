@@ -190,16 +190,18 @@ public abstract class GameApplication implements Runnable {
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new ConsoleHandlerFormator());
 
+        LoggerHandler logger = new LoggerHandler(this);
+
         gameLogger.setUseParentHandlers(false);
         if (isConsoleActivated) {
             gameLogger.addHandler(handler);
-            gameLogger.addHandler(new LoggerHandler(this));
+            gameLogger.addHandler(logger);
         }
 
         engineLogger.setUseParentHandlers(false);
         if (isConsoleActivated) {
             engineLogger.addHandler(handler);
-            engineLogger.addHandler(new LoggerHandler(this));
+            engineLogger.addHandler(logger);
         }
 
         engineLogger.info("GameEngine " + EngineConstants.ENGINE_VERSION);

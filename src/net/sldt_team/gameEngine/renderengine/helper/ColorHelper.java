@@ -50,8 +50,31 @@ public class ColorHelper {
         alpha = 1.0F;
     }
 
-    private float analyseColor(float colorPart) {
-        return Math.abs(colorPart / 255);
+    /**
+     * Defines a new color using float-RGBA (0-1)
+     * @param r Red-Element
+     * @param g Green-Element
+     * @param b Blue-Element
+     * @param a Alpha-Element
+     */
+    public ColorHelper(float r, float g, float b, float a){
+        red = r;
+        green = g;
+        blue = b;
+        alpha = a;
+    }
+
+    /**
+     * Defines a new color using float-RGB (0-1)
+     * @param r Red-Element
+     * @param g Green-Element
+     * @param b Blue-Element
+     */
+    public ColorHelper(float r, float g, float b){
+        red = r;
+        green = g;
+        blue = b;
+        alpha = 1.0F;
     }
 
     /**
@@ -66,6 +89,10 @@ public class ColorHelper {
         green = analyseColor(g);
         blue = analyseColor(b);
         alpha = analyseColor(a);
+    }
+
+    private float analyseColor(float colorPart) {
+        return Math.abs(colorPart / 255);
     }
 
     /**
